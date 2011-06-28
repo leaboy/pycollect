@@ -10,7 +10,7 @@
 #
 # GNU Free Documentation License 1.3
 
-import re, sys, time
+import re, sys, time, os
 import threading
 import httplib, urllib
 from urlparse import urlparse,urljoin
@@ -98,10 +98,12 @@ class Collect():
         urlListHtml = self.httpRequest(url)[1]
         urlListHtml = self.parseData(urlListHtml, self.robotinfo['subjecturlrule'], '[list]')
         urlList = self.getURL(url, urlListHtml)
+        urlList = self.filterData(url, urlList)
 
-        if urlList!=None and len(urlList)>0:
+        listlength = len(urlList)
+        if urlList!=None and listlength>0:
             listitem = []
-            for i in urlList:
+            for k,i in urlList.iteritems():
                 if not isinstance(i, list) or len(i)<2: continue
                 tempitem = {}
                 tempitem['key'] = hashlib.md5(i[0]).hexdigest().upper()
@@ -117,7 +119,7 @@ class Collect():
                 listitem.append(tempitem)
                 time.sleep(speed)
             self.saveData(listitem)
-            print 'Finished: %s (OK).' % url
+            print 'Finished: %s (%d).' % (url, listlength)
         else:
             print 'Finished: %s (Null).' % url
 
@@ -144,7 +146,7 @@ class Collect():
             return
 
         path = listUrl[::-1][listUrl[::-1].find('/'):][::-1]
-        urlList = []
+        urlList = {}
         for i in urls:
             tempurl = temptitle = ''
             if isinstance(i, str):
@@ -155,7 +157,7 @@ class Collect():
             if len(tempurl)==0 : continue
             tempurlPars = urlparse(tempurl)
             tempurl = (tempurlPars[0]=='' and [urljoin(path, tempurl)] or [tempurl])[0]
-            urlList.append([tempurl, temptitle])
+            urlList[hashlib.md5(tempurl).hexdigest().upper()] = [tempurl, temptitle]
 
         return urlList
 
@@ -210,6 +212,38 @@ class Collect():
             print 'Error: %s (Faild).' % url
 
         return [urls, content]
+
+    def filterData(self, url, urlList):
+        '''
+        @ Return new url and Update log file
+        '''
+        R = {}
+        temUrlList = (isinstance(urlList, dict) and [urlList.keys()] or [[]])[0]
+        path = 'log/%s' % str(self.robotinfo['taskid'])
+        if not os.path.exists(path):
+            os.makedirs(path)
+        logname = '%s/%s' % (path, hashlib.md5(url).hexdigest().upper())
+        if not os.path.isfile(logname):
+            fp = open(logname, 'w')
+            fp.close()
+        fp = open(logname, 'r')
+        logdata = fp.read()
+        fp.close()
+        try:
+            logdata = loads(logdata)
+            logdata = (isinstance(logdata, dict) and [dict_to_list(logdata)] or [[]])[0]
+        except:
+            logdata = []
+        temUrlList.extend(logdata)
+        newUrlList = [i for i in temUrlList if temUrlList.count(i)==1]
+        temUrlList = list(set(temUrlList))
+        temUrlList = dumps(temUrlList)
+        fp = open(logname, 'w')
+        fp.write(temUrlList)
+        fp.close()
+        for i in newUrlList:
+            if i in urlList: R[i] = urlList[i]
+        return R
 
     def saveData(self, listitem):
         '''
