@@ -91,6 +91,7 @@
             <attribute name="title">
              <string>采集规则</string>
             </attribute>
+            <layout class="QVBoxLayout" name="verticalLayout_5"/>
            </widget>
           </widget>
          </item>
