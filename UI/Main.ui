@@ -16,86 +16,34 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
-       <widget class="QGroupBox" name="groupBox">
-        <property name="title">
-         <string>任务列表</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="spacing">
-          <number>2</number>
+       <widget class="QTableWidget" name="tableWidget">
+        <column>
+         <property name="text">
+          <string>任务名称</string>
          </property>
-         <property name="margin">
-          <number>3</number>
+        </column>
+        <column>
+         <property name="text">
+          <string>采集方案</string>
          </property>
-         <item>
-          <widget class="QTableWidget" name="tableWidget">
-           <column>
-            <property name="text">
-             <string>任务名称</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>采集方案</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>执行时间</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>下次执行时间</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>状态</string>
-            </property>
-           </column>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
-       <widget class="QGroupBox" name="groupBox_2">
-        <property name="title">
-         <string>配置信息</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="spacing">
-          <number>2</number>
+        </column>
+        <column>
+         <property name="text">
+          <string>执行时间</string>
          </property>
-         <property name="margin">
-          <number>3</number>
+        </column>
+        <column>
+         <property name="text">
+          <string>下次执行时间</string>
          </property>
-         <item>
-          <widget class="QTabWidget" name="tabWidget">
-           <property name="currentIndex">
-            <number>1</number>
-           </property>
-           <widget class="QWidget" name="tab">
-            <attribute name="title">
-             <string>基本信息</string>
-            </attribute>
-           </widget>
-           <widget class="QWidget" name="tab_2">
-            <attribute name="title">
-             <string>采集规则</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_5"/>
-           </widget>
-          </widget>
-         </item>
-        </layout>
+        </column>
+        <column>
+         <property name="text">
+          <string>状态</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>
