@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>RobotWindow</class>
+ <widget class="QMainWindow" name="RobotWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -25,6 +25,9 @@
         <string>基本信息</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5">
+        <property name="margin">
+         <number>6</number>
+        </property>
         <item>
          <widget class="QGroupBox" name="groupBox_3">
           <property name="sizePolicy">
@@ -46,6 +49,18 @@
            <bool>false</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="leftMargin">
+            <number>9</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
            <item>
             <layout class="QFormLayout" name="formLayout_2">
              <item row="0" column="0">
@@ -94,7 +109,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit">
+              <widget class="QLineEdit" name="robotname">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -104,7 +119,7 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="lineEdit_2">
+              <widget class="QLineEdit" name="speed">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -114,7 +129,7 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLineEdit" name="lineEdit_3">
+              <widget class="QLineEdit" name="threads">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -140,7 +155,7 @@
            <string notr="true"/>
           </property>
           <property name="title">
-           <string>MySQL设置&gt;&gt;</string>
+           <string>数据库设置&gt;&gt;</string>
           </property>
           <property name="flat">
            <bool>true</bool>
@@ -149,6 +164,18 @@
            <bool>false</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="leftMargin">
+            <number>9</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
            <item>
             <layout class="QFormLayout" name="formLayout_3">
              <item row="0" column="0">
@@ -198,7 +225,7 @@
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QLineEdit" name="lineEdit_4">
+              <widget class="QLineEdit" name="dbhost">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -208,7 +235,7 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="lineEdit_5">
+              <widget class="QLineEdit" name="dbname">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -218,7 +245,7 @@
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLineEdit" name="lineEdit_6">
+              <widget class="QLineEdit" name="dbuser">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -228,7 +255,7 @@
               </widget>
              </item>
              <item row="3" column="1">
-              <widget class="QLineEdit" name="lineEdit_7">
+              <widget class="QLineEdit" name="dbpw">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -260,6 +287,18 @@
            <bool>true</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <property name="leftMargin">
+            <number>9</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
            <item>
             <layout class="QGridLayout" name="gridLayout_3">
              <item row="0" column="0">
@@ -300,7 +339,7 @@
                 </widget>
                </item>
                <item row="0" column="1" colspan="4">
-                <widget class="QLineEdit" name="lineEdit_13">
+                <widget class="QLineEdit" name="autourl">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -329,7 +368,7 @@
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QLineEdit" name="lineEdit_14">
+                <widget class="QLineEdit" name="listpagestart">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -364,7 +403,7 @@
                 </widget>
                </item>
                <item row="1" column="3">
-                <widget class="QLineEdit" name="lineEdit_15">
+                <widget class="QLineEdit" name="listpageend">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -399,7 +438,7 @@
                 </widget>
                </item>
                <item row="2" column="1">
-                <widget class="QLineEdit" name="lineEdit_16">
+                <widget class="QLineEdit" name="wildcardlen">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -437,7 +476,7 @@
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QPlainTextEdit" name="plainTextEdit">
+              <widget class="QPlainTextEdit" name="manualurl">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -458,6 +497,9 @@
         <string>采集规则</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
+        <property name="margin">
+         <number>6</number>
+        </property>
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="sizePolicy">
@@ -479,78 +521,182 @@
            <bool>false</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="leftMargin">
+            <number>9</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
            <item>
             <layout class="QGridLayout" name="gridLayout_4">
              <item row="0" column="0">
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>文章倒序采集</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QCheckBox" name="checkBox">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
               <widget class="QLabel" name="label_16">
                <property name="text">
                 <string>采集页面编码</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="lineEdit_12">
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="encode">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="maximumSize">
+                <size>
+                 <width>45</width>
+                 <height>16777215</height>
+                </size>
+               </property>
               </widget>
              </item>
-             <item row="2" column="0">
+             <item row="1" column="0">
               <widget class="QLabel" name="label_17">
                <property name="text">
-                <string>列表区域识别规则</string>
+                <string>列表区域识别规则&lt;br/&gt;&lt;font color='#ACCAEF'&gt;截取的地方加上：&lt;br/&gt;[list]&lt;/font&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPlainTextEdit" name="subjecturlrule"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>文章链接URL识别规则&lt;br/&gt;&lt;font color='#ACCAEF'&gt;截取的地方加上：&lt;br/&gt;[url]、[title]&lt;/font&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
                </property>
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QPlainTextEdit" name="plainTextEdit_2"/>
+              <widget class="QPlainTextEdit" name="subjecturllinkrule"/>
              </item>
              <item row="3" column="0">
-              <widget class="QLabel" name="label_18">
+              <widget class="QLabel" name="label_19">
                <property name="text">
-                <string>文章链接URL识别规则</string>
+                <string>文章标题识别规则&lt;br/&gt;&lt;font color='#ACCAEF'&gt;截取的地方加上：&lt;br/&gt;[title]&lt;/font&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
                </property>
               </widget>
              </item>
              <item row="3" column="1">
-              <widget class="QPlainTextEdit" name="plainTextEdit_3"/>
+              <widget class="QPlainTextEdit" name="subjectrule"/>
              </item>
              <item row="4" column="0">
-              <widget class="QLabel" name="label_19">
+              <widget class="QLabel" name="label_20">
                <property name="text">
-                <string>文章标题识别规则</string>
+                <string>文章内容识别规则&lt;br/&gt;&lt;font color='#ACCAEF'&gt;截取的地方加上：&lt;br/&gt;[message]&lt;/font&gt;</string>
+               </property>
+               <property name="textFormat">
+                <enum>Qt::RichText</enum>
                </property>
               </widget>
              </item>
              <item row="4" column="1">
-              <widget class="QPlainTextEdit" name="plainTextEdit_4"/>
-             </item>
-             <item row="5" column="0">
-              <widget class="QLabel" name="label_20">
-               <property name="text">
-                <string>文章内容识别规则</string>
-               </property>
-              </widget>
+              <widget class="QPlainTextEdit" name="messagerule"/>
              </item>
              <item row="5" column="1">
-              <widget class="QPlainTextEdit" name="plainTextEdit_5"/>
+              <layout class="QGridLayout" name="gridLayout_5">
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="reverseorder">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>倒序采集</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QCheckBox" name="onlylinks">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>不采集内容</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QCheckBox" name="downloadmode">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>下载模式</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <widget class="QLineEdit" name="extension">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>45</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>文件后缀，仅下载模式有效</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="maxLength">
+                  <number>10</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <widget class="QLabel" name="label_5">
+                 <property name="text">
+                  <string>修改文件后缀</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label_10">
+               <property name="text">
+                <string>其它设置</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -564,6 +710,9 @@
         <string>导出设置</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="margin">
+         <number>6</number>
+        </property>
         <item>
          <widget class="QGroupBox" name="groupBox_5">
           <property name="sizePolicy">
@@ -585,8 +734,20 @@
            <bool>false</bool>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <property name="leftMargin">
+            <number>9</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>6</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
            <item>
-            <widget class="QPlainTextEdit" name="plainTextEdit_6">
+            <widget class="QPlainTextEdit" name="importSQL">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                <horstretch>0</horstretch>
@@ -610,8 +771,14 @@
            <cursorShape>ArrowCursor</cursorShape>
           </property>
           <property name="text">
-           <string>注：采集完成后执行设置的SQL语句保存到数据库
-数据：[taskid], [robotid], [key], [url], [title], [content], [runtime]</string>
+           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#accaef;&quot;&gt;注：采集完成后执行设置的SQL语句保存到数据库&lt;br /&gt;数据：&lt;/span&gt;&lt;span style=&quot; font-style:italic; color:#accaef;&quot;&gt;[taskid], [robotid], [key], [url], [title], [content], [runtime]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="textFormat">
+           <enum>Qt::RichText</enum>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -624,6 +791,49 @@
        </layout>
       </widget>
      </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>保存</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
