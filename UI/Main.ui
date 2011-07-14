@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>300</height>
+    <width>700</width>
+    <height>365</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,7 +56,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>500</width>
+     <width>700</width>
      <height>23</height>
     </rect>
    </property>
@@ -67,7 +67,7 @@
     <addaction name="taskadd"/>
     <addaction name="robotadd"/>
     <addaction name="separator"/>
-    <addaction name="quit"/>
+    <addaction name="mquit"/>
    </widget>
    <widget class="QMenu" name="main_m_log">
     <property name="title">
@@ -103,7 +103,7 @@
     <string>添加采集方案</string>
    </property>
   </action>
-  <action name="quit">
+  <action name="mquit">
    <property name="text">
     <string>退出</string>
    </property>
