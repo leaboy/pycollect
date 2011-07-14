@@ -105,7 +105,10 @@ class Connection(object):
     def reconnect(self):
         """Closes the existing database connection and re-opens it."""
         self.close()
-        self._db = MySQLdb.connect(**self._db_args)
+        try:
+            self._db = MySQLdb.connect(**self._db_args)
+        except:
+            return None
         self._db.autocommit(False)
 
 

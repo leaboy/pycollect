@@ -27,6 +27,7 @@ from ui_task import Ui_TaskDialog
 from ui_database import Ui_DatabaseDialog
 
 
+DB = None
 ini = IniFile("config.cfg")
 
 class PycollectUI(QtGui.QMainWindow):
@@ -35,12 +36,6 @@ class PycollectUI(QtGui.QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-
-        # test database setting
-        HostIP = ini.get("default","dbhost")
-        HostName = ini.get("default","dbname")
-        HostImage = ini.get("default","dbuser")
-        HostImage = ini.get("default","dbpw")
 
         self.ConnectEvent()
 
@@ -97,10 +92,36 @@ class DatabaseUI(QtGui.QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle(title)
+        self.connect(self.ui.databaseSave, QtCore.SIGNAL("clicked()"), self.verify)
+
+    def verify(self):
+        global DB
+        dbhost = str(self.ui.dbhost.text())
+        dbname = str(self.ui.dbname.text())
+        dbuser = str(self.ui.dbuser.text())
+        dbpw = str(self.ui.dbpw.text())
+        if dbhost and dbname and dbuser and dbpw:
+            DB = Connection(host=dbhost,database=dbname,user=dbuser,password=dbpw)
+            print DB._db
+            return
+        if DB==None:
+            self.ui.checklabel.setText(u'数据库链接错误')
+        self.accept()
+        return
 
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     Pycollectapp = PycollectUI()
     Pycollectapp.show()
+
+    # check database setting
+    dbhost = ini.get("default","dbhost")
+    dbname = ini.get("default","dbname")
+    dbuser = ini.get("default","dbuser")
+    dbpw = ini.get("default","dbpw")
+
+    if dbhost==None or dbname==None or dbuser==None or dbpw==None:
+        Pycollectapp.DatabaseDialog()
+
     sys.exit(app.exec_())

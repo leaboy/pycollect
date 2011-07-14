@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Database.ui'
 #
-# Created: Thu Jul 14 15:25:42 2011
+# Created: Thu Jul 14 16:55:35 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,13 +12,15 @@ from PyQt4 import QtCore, QtGui
 class Ui_DatabaseDialog(object):
     def setupUi(self, DatabaseDialog):
         DatabaseDialog.setObjectName("DatabaseDialog")
-        DatabaseDialog.resize(231, 147)
+        DatabaseDialog.resize(265, 147)
+        DatabaseDialog.setMinimumSize(QtCore.QSize(265, 147))
+        DatabaseDialog.setMaximumSize(QtCore.QSize(265, 147))
         self.verticalLayout = QtGui.QVBoxLayout(DatabaseDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtGui.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
         self.label_14 = QtGui.QLabel(DatabaseDialog)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_14.sizePolicy().hasHeightForWidth())
@@ -41,7 +43,7 @@ class Ui_DatabaseDialog(object):
         sizePolicy.setHeightForWidth(self.dbhost.sizePolicy().hasHeightForWidth())
         self.dbhost.setSizePolicy(sizePolicy)
         self.dbhost.setObjectName("dbhost")
-        self.gridLayout.addWidget(self.dbhost, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.dbhost, 0, 1, 1, 2)
         self.dbname = QtGui.QLineEdit(DatabaseDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -49,7 +51,7 @@ class Ui_DatabaseDialog(object):
         sizePolicy.setHeightForWidth(self.dbname.sizePolicy().hasHeightForWidth())
         self.dbname.setSizePolicy(sizePolicy)
         self.dbname.setObjectName("dbname")
-        self.gridLayout.addWidget(self.dbname, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.dbname, 1, 1, 1, 2)
         self.dbuser = QtGui.QLineEdit(DatabaseDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -57,7 +59,7 @@ class Ui_DatabaseDialog(object):
         sizePolicy.setHeightForWidth(self.dbuser.sizePolicy().hasHeightForWidth())
         self.dbuser.setSizePolicy(sizePolicy)
         self.dbuser.setObjectName("dbuser")
-        self.gridLayout.addWidget(self.dbuser, 2, 1, 1, 1)
+        self.gridLayout.addWidget(self.dbuser, 2, 1, 1, 2)
         self.dbpw = QtGui.QLineEdit(DatabaseDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -66,15 +68,19 @@ class Ui_DatabaseDialog(object):
         self.dbpw.setSizePolicy(sizePolicy)
         self.dbpw.setEchoMode(QtGui.QLineEdit.PasswordEchoOnEdit)
         self.dbpw.setObjectName("dbpw")
-        self.gridLayout.addWidget(self.dbpw, 3, 1, 1, 1)
-        self.pushButton = QtGui.QPushButton(DatabaseDialog)
+        self.gridLayout.addWidget(self.dbpw, 3, 1, 1, 2)
+        self.databaseSave = QtGui.QPushButton(DatabaseDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
-        self.pushButton.setSizePolicy(sizePolicy)
-        self.pushButton.setObjectName("pushButton")
-        self.gridLayout.addWidget(self.pushButton, 4, 1, 1, 1)
+        sizePolicy.setHeightForWidth(self.databaseSave.sizePolicy().hasHeightForWidth())
+        self.databaseSave.setSizePolicy(sizePolicy)
+        self.databaseSave.setObjectName("databaseSave")
+        self.gridLayout.addWidget(self.databaseSave, 4, 1, 1, 1)
+        self.checklabel = QtGui.QLabel(DatabaseDialog)
+        self.checklabel.setText("")
+        self.checklabel.setObjectName("checklabel")
+        self.gridLayout.addWidget(self.checklabel, 4, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
 
         self.retranslateUi(DatabaseDialog)
@@ -86,5 +92,5 @@ class Ui_DatabaseDialog(object):
         self.label_15.setText(QtGui.QApplication.translate("DatabaseDialog", "数据库名称", None, QtGui.QApplication.UnicodeUTF8))
         self.label_28.setText(QtGui.QApplication.translate("DatabaseDialog", "数据库用户名", None, QtGui.QApplication.UnicodeUTF8))
         self.label_29.setText(QtGui.QApplication.translate("DatabaseDialog", "数据库密码", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton.setText(QtGui.QApplication.translate("DatabaseDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
+        self.databaseSave.setText(QtGui.QApplication.translate("DatabaseDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
 
