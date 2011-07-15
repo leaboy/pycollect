@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Database.ui'
 #
-# Created: Thu Jul 14 16:55:35 2011
+# Created: Fri Jul 15 09:10:37 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,9 +12,14 @@ from PyQt4 import QtCore, QtGui
 class Ui_DatabaseDialog(object):
     def setupUi(self, DatabaseDialog):
         DatabaseDialog.setObjectName("DatabaseDialog")
-        DatabaseDialog.resize(265, 147)
-        DatabaseDialog.setMinimumSize(QtCore.QSize(265, 147))
-        DatabaseDialog.setMaximumSize(QtCore.QSize(265, 147))
+        DatabaseDialog.resize(275, 147)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(DatabaseDialog.sizePolicy().hasHeightForWidth())
+        DatabaseDialog.setSizePolicy(sizePolicy)
+        DatabaseDialog.setMinimumSize(QtCore.QSize(275, 147))
+        DatabaseDialog.setMaximumSize(QtCore.QSize(275, 147))
         self.verticalLayout = QtGui.QVBoxLayout(DatabaseDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtGui.QGridLayout()
@@ -79,6 +84,7 @@ class Ui_DatabaseDialog(object):
         self.gridLayout.addWidget(self.databaseSave, 4, 1, 1, 1)
         self.checklabel = QtGui.QLabel(DatabaseDialog)
         self.checklabel.setText("")
+        self.checklabel.setTextFormat(QtCore.Qt.RichText)
         self.checklabel.setObjectName("checklabel")
         self.gridLayout.addWidget(self.checklabel, 4, 2, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)

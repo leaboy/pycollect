@@ -108,7 +108,7 @@ class Connection(object):
         try:
             self._db = MySQLdb.connect(**self._db_args)
         except:
-            return None
+            return
         self._db.autocommit(False)
 
 

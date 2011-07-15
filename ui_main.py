@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Main.ui'
 #
-# Created: Thu Jul 14 14:26:12 2011
+# Created: Fri Jul 15 11:12:54 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,24 +17,9 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.vbox = QtGui.QVBoxLayout()
-        self.vbox.setObjectName("vbox")
-        self.table = QtGui.QTableWidget(self.centralwidget)
-        self.table.setObjectName("table")
-        self.table.setColumnCount(5)
-        self.table.setRowCount(0)
-        item = QtGui.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(0, item)
-        item = QtGui.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(1, item)
-        item = QtGui.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(2, item)
-        item = QtGui.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(3, item)
-        item = QtGui.QTableWidgetItem()
-        self.table.setHorizontalHeaderItem(4, item)
-        self.vbox.addWidget(self.table)
-        self.verticalLayout.addLayout(self.vbox)
+        self.tasklist = QtGui.QTreeWidget(self.centralwidget)
+        self.tasklist.setObjectName("tasklist")
+        self.verticalLayout.addWidget(self.tasklist)
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -83,11 +68,11 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.table.horizontalHeaderItem(0).setText(QtGui.QApplication.translate("MainWindow", "任务名称", None, QtGui.QApplication.UnicodeUTF8))
-        self.table.horizontalHeaderItem(1).setText(QtGui.QApplication.translate("MainWindow", "采集方案", None, QtGui.QApplication.UnicodeUTF8))
-        self.table.horizontalHeaderItem(2).setText(QtGui.QApplication.translate("MainWindow", "执行时间", None, QtGui.QApplication.UnicodeUTF8))
-        self.table.horizontalHeaderItem(3).setText(QtGui.QApplication.translate("MainWindow", "下次执行时间", None, QtGui.QApplication.UnicodeUTF8))
-        self.table.horizontalHeaderItem(4).setText(QtGui.QApplication.translate("MainWindow", "状态", None, QtGui.QApplication.UnicodeUTF8))
+        self.tasklist.headerItem().setText(0, QtGui.QApplication.translate("MainWindow", "任务名称", None, QtGui.QApplication.UnicodeUTF8))
+        self.tasklist.headerItem().setText(1, QtGui.QApplication.translate("MainWindow", "采集方案", None, QtGui.QApplication.UnicodeUTF8))
+        self.tasklist.headerItem().setText(2, QtGui.QApplication.translate("MainWindow", "执行时间", None, QtGui.QApplication.UnicodeUTF8))
+        self.tasklist.headerItem().setText(3, QtGui.QApplication.translate("MainWindow", "下次执行时间", None, QtGui.QApplication.UnicodeUTF8))
+        self.tasklist.headerItem().setText(4, QtGui.QApplication.translate("MainWindow", "状态", None, QtGui.QApplication.UnicodeUTF8))
         self.main_m_add.setTitle(QtGui.QApplication.translate("MainWindow", "添加", None, QtGui.QApplication.UnicodeUTF8))
         self.main_m_log.setTitle(QtGui.QApplication.translate("MainWindow", "日志", None, QtGui.QApplication.UnicodeUTF8))
         self.main_m_help.setTitle(QtGui.QApplication.translate("MainWindow", "帮助", None, QtGui.QApplication.UnicodeUTF8))

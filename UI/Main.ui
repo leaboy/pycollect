@@ -16,37 +16,33 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QVBoxLayout" name="vbox">
-      <item>
-       <widget class="QTableWidget" name="table">
-        <column>
-         <property name="text">
-          <string>任务名称</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>采集方案</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>执行时间</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>下次执行时间</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>状态</string>
-         </property>
-        </column>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QTreeWidget" name="tasklist">
+      <column>
+       <property name="text">
+        <string>任务名称</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>采集方案</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>执行时间</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>下次执行时间</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>状态</string>
+       </property>
+      </column>
+     </widget>
     </item>
    </layout>
   </widget>
