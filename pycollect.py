@@ -10,7 +10,7 @@
 #
 # GNU Free Documentation License 1.3
 
-import re, sys, time, os
+import re, sys, time, datetime, os
 import threading
 import httplib, urllib
 import hashlib
@@ -64,9 +64,14 @@ class PycollectUI(QtGui.QMainWindow):
 
     def getTaskList(self):
         if _G['DB']==None: return
-        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.loop,t.loopperiod,t.runtime,t.nextruntime FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
+        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
         for i in taskList:
-            continue
+            i['taskname']   = unicode(i['taskname'])
+            i['name']       = unicode(i['name'])
+            i['runtime']    = str(datetime.datetime.fromtimestamp(i['runtime']))
+            i['nextruntime']= str(datetime.datetime.fromtimestamp(i['nextruntime']))
+            item = QtGui.QTreeWidgetItem([i['taskname'], i['name'],i['runtime'], i['nextruntime']])
+            self.ui.tasklist.addTopLevelItem(item)
 
 
 class TaskUI(QtGui.QDialog):
@@ -107,17 +112,13 @@ class DatabaseUI(QtGui.QDialog):
 
     def verify(self):
         global _G
-        dbhost  = str(self.ui.dbhost.text())
-        dbname  = str(self.ui.dbname.text())
-        dbuser  = str(self.ui.dbuser.text())
-        dbpw    = str(self.ui.dbpw.text())
-        if dbhost and dbname and dbuser and dbpw:
-            _G['DB'] = Connection(host=dbhost,database=dbname,user=dbuser,password=dbpw)
+        _G['dbhost']  = str(self.ui.dbhost.text())
+        _G['dbname']  = str(self.ui.dbname.text())
+        _G['dbuser']  = str(self.ui.dbuser.text())
+        _G['dbpw']    = str(self.ui.dbpw.text())
+        if _G['dbhost'] and _G['dbname'] and _G['dbuser'] and _G['dbpw']:
+            _G['DB'] = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
         if _G['DB'] and _G['DB']._db is not None:
-            _G['dbhost']  = dbhost
-            _G['dbname']  = dbname
-            _G['dbuser']  = dbuser
-            _G['dbpw']    = dbpw
             self.accept()
         else:
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
