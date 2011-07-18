@@ -61,6 +61,26 @@ class PycollectUI(QtGui.QMainWindow):
             ini.set("database", "dbname", _G['dbname'])
             ini.set("database", "dbuser", _G['dbuser'])
             ini.set("database", "dbpw", _G['dbpw'])
+            self.ui.statusbar.clearMessage()
+
+    def iniDatabaseConn(self):
+        conn = flag = False
+        _G['dbhost']  = ini.get("database","dbhost")
+        _G['dbname']  = ini.get("database","dbname")
+        _G['dbuser']  = ini.get("database","dbuser")
+        _G['dbpw']    = ini.get("database","dbpw")
+
+        if _G['dbhost']==None or _G['dbname']==None or _G['dbuser']==None or _G['dbpw']==None:
+            flag = True
+        else:
+            _G['DB'] = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
+            if _G['DB']._db is not None: conn = True
+            else: _G['DB'] = None
+
+        if conn==False:
+            self.ui.statusbar.showMessage(u'* 数据库链接错误.')
+            time.sleep(1)
+            self.DatabaseDialog(flag)
 
     def getTaskList(self):
         if _G['DB']==None: return
@@ -103,15 +123,14 @@ class DatabaseUI(QtGui.QDialog):
 
         self.setWindowTitle(title)
         if flag==False:
-            self.ui.dbhost.setText(ini.get("database","dbhost"))
-            self.ui.dbname.setText(ini.get("database","dbname"))
-            self.ui.dbuser.setText(ini.get("database","dbuser"))
-            self.ui.dbpw.setText(ini.get("database","dbpw"))
+            self.ui.dbhost.setText(_G['dbhost'])
+            self.ui.dbname.setText(_G['dbname'])
+            self.ui.dbuser.setText(_G['dbuser'])
+            self.ui.dbpw.setText(_G['dbpw'])
 
         self.connect(self.ui.databaseSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def verify(self):
-        global _G
         _G['dbhost']  = str(self.ui.dbhost.text())
         _G['dbname']  = str(self.ui.dbname.text())
         _G['dbuser']  = str(self.ui.dbuser.text())
@@ -121,6 +140,7 @@ class DatabaseUI(QtGui.QDialog):
         if _G['DB'] and _G['DB']._db is not None:
             self.accept()
         else:
+            _G['DB'] = None
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
 
 
@@ -134,20 +154,17 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     Pycollectapp = PycollectUI()
+
+    ''' load stylesheet '''
+    styleFile = QtCore.QFile("stylesheet.qss")
+    if styleFile.open(QtCore.QIODevice.ReadOnly):
+        Pycollectapp.setStyleSheet(str(styleFile.readAll()))
+    ''' show main window '''
     Pycollectapp.show()
 
-    # check database setting
-    _G['dbhost']  = ini.get("database","dbhost")
-    _G['dbname']  = ini.get("database","dbname")
-    _G['dbuser']  = ini.get("database","dbuser")
-    _G['dbpw']    = ini.get("database","dbpw")
-
-    if _G['dbhost']==None or _G['dbname']==None or _G['dbuser']==None or _G['dbpw']==None:
-        time.sleep(1)
-        Pycollectapp.DatabaseDialog(True)
-    else:
-        _G['DB'] = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
-
+    ''' init database connection '''
+    Pycollectapp.iniDatabaseConn()
+    ''' get task list from database '''
     Pycollectapp.getTaskList()
 
     sys.exit(app.exec_())
