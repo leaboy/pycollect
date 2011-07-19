@@ -61,26 +61,25 @@ class PycollectUI(QtGui.QMainWindow):
             self.ui.statusbar.clearMessage()
 
     def iniDatabaseConn(self):
-        conn = flag = False
         _G['dbhost']  = ini.get("database","dbhost")
         _G['dbname']  = ini.get("database","dbname")
         _G['dbuser']  = ini.get("database","dbuser")
         _G['dbpw']    = ini.get("database","dbpw")
 
-        if _G['dbhost']==None or _G['dbname']==None or _G['dbuser']==None or _G['dbpw']==None:
-            flag = True
-        else:
-            _G['DB'] = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
-            if _G['DB']._db is not None: conn = True
-            else: _G['DB'] = None
+        if _G['dbhost'] and _G['dbname'] and _G['dbuser'] and _G['dbpw'] is not None:
+            conn = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
+            if conn and conn._db is not None:
+                _G['DB'] = conn
+                _G['conn'] = conn._db
 
-        if conn==False:
+        if _G['conn']==None:
+            _G['DB'] = _G['conn'] = None
             self.ui.statusbar.showMessage(u'* 数据库链接错误.')
             time.sleep(1)
-            self.DatabaseDialog(flag)
+            self.DatabaseDialog()
 
     def getTaskList(self):
-        if _G['DB']==None: return
+        if _G['conn']==None: return
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
         for i in taskList:
             i['taskname']   = unicode(i['taskname'])
@@ -111,7 +110,7 @@ class TaskUI(QtGui.QDialog):
         self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def getRobotList(self):
-        if _G['DB']==None: return
+        if _G['conn']==None: return
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
         self.ui.robotid.addItem(u'-选择采集方案-', QtCore.QVariant(0))
         for i in robotList:
@@ -160,11 +159,11 @@ class DatabaseUI(QtGui.QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle(title)
-        if flag==False:
-            self.ui.dbhost.setText(_G['dbhost'])
-            self.ui.dbname.setText(_G['dbname'])
-            self.ui.dbuser.setText(_G['dbuser'])
-            self.ui.dbpw.setText(_G['dbpw'])
+
+        _G['dbhost'] and self.ui.dbhost.setText(_G['dbhost'])
+        _G['dbname'] and self.ui.dbname.setText(_G['dbname'])
+        _G['dbuser'] and self.ui.dbuser.setText(_G['dbuser'])
+        _G['dbpw'] and self.ui.dbpw.setText(_G['dbpw'])
 
         self.connect(self.ui.databaseSave, QtCore.SIGNAL("clicked()"), self.verify)
 
@@ -173,25 +172,27 @@ class DatabaseUI(QtGui.QDialog):
         dbname  = str(self.ui.dbname.text())
         dbuser  = str(self.ui.dbuser.text())
         dbpw    = str(self.ui.dbpw.text())
+
         if dbhost and dbname and dbuser and dbpw:
             conn = Connection(host=dbhost,database=dbname,user=dbuser,password=dbpw)
-        if conn and conn._db is not None:
-            _G['DB'] = conn
-            _G['dbhost']  = dbhost
-            _G['dbname']  = dbname
-            _G['dbuser']  = dbuser
-            _G['dbpw']    = dbpw
-            self.accept()
-        else:
+            if conn and conn._db is not None:
+                _G['DB'] = conn
+                _G['conn'] = conn._db
+                _G['dbhost']  = dbhost
+                _G['dbname']  = dbname
+                _G['dbuser']  = dbuser
+                _G['dbpw']    = dbpw
+                self.accept()
+        if _G['DB']==None or _G['conn']==None:
+            _G['DB'] = _G['conn'] = None
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
-        if _G['DB']._db==None: _G['DB'] = None
 
 class func():
     pass
 
 
 if __name__ == "__main__":
-    _G = {'DB': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
+    _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
 
     app = QtGui.QApplication(sys.argv)
