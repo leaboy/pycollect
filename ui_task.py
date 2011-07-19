@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Task.ui'
 #
-# Created: Thu Jul 14 14:45:37 2011
+# Created: Tue Jul 19 16:39:04 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -47,15 +47,15 @@ class Ui_TaskDialog(object):
         self.runtime = QtGui.QDateTimeEdit(TaskDialog)
         self.runtime.setObjectName("runtime")
         self.gridLayout.addWidget(self.runtime, 4, 1, 1, 2)
-        self.pushButton = QtGui.QPushButton(TaskDialog)
+        self.taskSave = QtGui.QPushButton(TaskDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
-        self.pushButton.setSizePolicy(sizePolicy)
-        self.pushButton.setMinimumSize(QtCore.QSize(0, 0))
-        self.pushButton.setObjectName("pushButton")
-        self.gridLayout.addWidget(self.pushButton, 5, 1, 1, 1)
+        sizePolicy.setHeightForWidth(self.taskSave.sizePolicy().hasHeightForWidth())
+        self.taskSave.setSizePolicy(sizePolicy)
+        self.taskSave.setMinimumSize(QtCore.QSize(0, 0))
+        self.taskSave.setObjectName("taskSave")
+        self.gridLayout.addWidget(self.taskSave, 5, 1, 1, 1)
         self.label_5 = QtGui.QLabel(TaskDialog)
         self.label_5.setObjectName("label_5")
         self.gridLayout.addWidget(self.label_5, 3, 2, 1, 1)
@@ -65,8 +65,9 @@ class Ui_TaskDialog(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.loopperiod.sizePolicy().hasHeightForWidth())
         self.loopperiod.setSizePolicy(sizePolicy)
+        self.loopperiod.setMinimum(3600)
         self.loopperiod.setMaximum(31536000)
-        self.loopperiod.setSingleStep(10)
+        self.loopperiod.setSingleStep(60)
         self.loopperiod.setProperty("value", 86400)
         self.loopperiod.setObjectName("loopperiod")
         self.gridLayout.addWidget(self.loopperiod, 3, 1, 1, 1)
@@ -74,6 +75,11 @@ class Ui_TaskDialog(object):
 
         self.retranslateUi(TaskDialog)
         QtCore.QMetaObject.connectSlotsByName(TaskDialog)
+        TaskDialog.setTabOrder(self.taskname, self.robotid)
+        TaskDialog.setTabOrder(self.robotid, self.isloop)
+        TaskDialog.setTabOrder(self.isloop, self.loopperiod)
+        TaskDialog.setTabOrder(self.loopperiod, self.runtime)
+        TaskDialog.setTabOrder(self.runtime, self.taskSave)
 
     def retranslateUi(self, TaskDialog):
         TaskDialog.setWindowTitle(QtGui.QApplication.translate("TaskDialog", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
@@ -82,6 +88,6 @@ class Ui_TaskDialog(object):
         self.label_3.setText(QtGui.QApplication.translate("TaskDialog", "是否循环", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("TaskDialog", "循环周期", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("TaskDialog", "执行时间", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton.setText(QtGui.QApplication.translate("TaskDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
+        self.taskSave.setText(QtGui.QApplication.translate("TaskDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("TaskDialog", "单位：秒", None, QtGui.QApplication.UnicodeUTF8))
 

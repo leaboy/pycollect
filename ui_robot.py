@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Robot.ui'
 #
-# Created: Mon Jul 18 15:22:04 2011
+# Created: Tue Jul 19 14:18:23 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_RobotDialog(object):
     def setupUi(self, RobotDialog):
         RobotDialog.setObjectName("RobotDialog")
-        RobotDialog.resize(537, 463)
+        RobotDialog.resize(537, 465)
         self.verticalLayout = QtGui.QVBoxLayout(RobotDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtGui.QTabWidget(RobotDialog)
@@ -346,6 +346,7 @@ class Ui_RobotDialog(object):
         self.extension.setObjectName("extension")
         self.gridLayout_9.addWidget(self.extension, 0, 3, 1, 1)
         self.label_42 = QtGui.QLabel(self.groupBox_9)
+        self.label_42.setStyleSheet("color: rgb(172, 202, 239);")
         self.label_42.setObjectName("label_42")
         self.gridLayout_9.addWidget(self.label_42, 0, 4, 1, 1)
         self.gridLayout_8.addLayout(self.gridLayout_9, 5, 1, 1, 1)

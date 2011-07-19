@@ -80,7 +80,7 @@
       <widget class="QDateTimeEdit" name="runtime"/>
      </item>
      <item row="5" column="1">
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="taskSave">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -113,11 +113,14 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="minimum">
+        <number>3600</number>
+       </property>
        <property name="maximum">
         <number>31536000</number>
        </property>
        <property name="singleStep">
-        <number>10</number>
+        <number>60</number>
        </property>
        <property name="value">
         <number>86400</number>
@@ -128,6 +131,14 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>taskname</tabstop>
+  <tabstop>robotid</tabstop>
+  <tabstop>isloop</tabstop>
+  <tabstop>loopperiod</tabstop>
+  <tabstop>runtime</tabstop>
+  <tabstop>taskSave</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -34,9 +34,6 @@ class PycollectUI(QtGui.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.ConnectEvent()
-
-    def ConnectEvent(self):
         # menu
         self.ui.taskadd.triggered.connect(self.TaskDialog)
         self.ui.robotadd.triggered.connect(self.RobotDialog)
@@ -102,6 +99,44 @@ class TaskUI(QtGui.QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle(title)
+        self.ui.runtime.setMinimumDateTime(QtCore.QDateTime.currentDateTime())
+
+        ''' get robot list from database '''
+        self.getRobotList()
+
+        ''' init form field '''
+        self.taskname = self.robotid = self.isloop = self.loopperiod = self.runtime = None
+
+        self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.SelectRobot)
+        self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
+
+    def getRobotList(self):
+        if _G['DB']==None: return
+        robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
+        self.ui.robotid.addItem(u'-选择采集方案-', QtCore.QVariant(0))
+        for i in robotList:
+            i['robotid']   = str(i['robotid'])
+            i['name']       = unicode(i['name'])
+            self.ui.robotid.addItem(i['name'], QtCore.QVariant(i['robotid']))
+
+    def SelectRobot(self, index):
+        self.robotid = self.ui.robotid.itemData(index).toString()
+
+    def verify(self):
+        a = self.ui.taskname.text()
+        print type(a)
+        a = a.toUtf8()
+        print type(a)
+        a = a.data()
+        print a.decode('utf-8').encode('gb2312')
+        '''
+        self.taskname   = unicode(str(self.ui.taskname.text().toUtf8()), 'utf8', 'gb2312')
+        #unicode(self.ui.TextCode.toPlainText().toUtf8(),'utf8', 'ignore')
+        #self.loopperiod = str(self.ui.loopperiod.value())
+        #self.runtime    = str(self.ui.runtime.dateTime())
+        print self.taskname
+        #, self.robotid, self.loopperiod, self.runtime
+        '''
 
 
 class RobotUI(QtGui.QDialog):
@@ -112,6 +147,9 @@ class RobotUI(QtGui.QDialog):
         self.ui.setupUi(self)
 
         self.setWindowTitle(title)
+
+    def verify(self):
+        pass
 
 
 class DatabaseUI(QtGui.QDialog):
@@ -131,18 +169,22 @@ class DatabaseUI(QtGui.QDialog):
         self.connect(self.ui.databaseSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def verify(self):
-        _G['dbhost']  = str(self.ui.dbhost.text())
-        _G['dbname']  = str(self.ui.dbname.text())
-        _G['dbuser']  = str(self.ui.dbuser.text())
-        _G['dbpw']    = str(self.ui.dbpw.text())
-        if _G['dbhost'] and _G['dbname'] and _G['dbuser'] and _G['dbpw']:
-            _G['DB'] = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
-        if _G['DB'] and _G['DB']._db is not None:
+        dbhost  = str(self.ui.dbhost.text())
+        dbname  = str(self.ui.dbname.text())
+        dbuser  = str(self.ui.dbuser.text())
+        dbpw    = str(self.ui.dbpw.text())
+        if dbhost and dbname and dbuser and dbpw:
+            conn = Connection(host=dbhost,database=dbname,user=dbuser,password=dbpw)
+        if conn and conn._db is not None:
+            _G['DB'] = conn
+            _G['dbhost']  = dbhost
+            _G['dbname']  = dbname
+            _G['dbuser']  = dbuser
+            _G['dbpw']    = dbpw
             self.accept()
         else:
-            _G['DB'] = None
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
-
+        if _G['DB']._db==None: _G['DB'] = None
 
 class func():
     pass
@@ -156,12 +198,12 @@ if __name__ == "__main__":
     Pycollectapp = PycollectUI()
 
     ''' load stylesheet '''
-    styleFile = QtCore.QFile("stylesheet.qss")
-    if styleFile.open(QtCore.QIODevice.ReadOnly):
-        Pycollectapp.setStyleSheet(str(styleFile.readAll()))
+    #styleFile = QtCore.QFile("stylesheet.qss")
+    #if styleFile.open(QtCore.QIODevice.ReadOnly):
+    #    Pycollectapp.setStyleSheet(str(styleFile.readAll()))
+
     ''' show main window '''
     Pycollectapp.show()
-
     ''' init database connection '''
     Pycollectapp.iniDatabaseConn()
     ''' get task list from database '''
