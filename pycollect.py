@@ -44,7 +44,7 @@ class PycollectUI(QtGui.QMainWindow):
     def TaskDialog(self):
         Dialog = TaskUI(u'添加任务', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
-            self.SaveRegular(Dialog.senderName(), Dialog.senderCodes())
+            print Dialog.isloop
 
     def RobotDialog(self):
         Dialog = RobotUI(u'添加采集器', self)
@@ -82,8 +82,6 @@ class PycollectUI(QtGui.QMainWindow):
         if _G['conn']==None: return
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
         for i in taskList:
-            i['taskname']   = unicode(i['taskname'])
-            i['name']       = unicode(i['name'])
             i['runtime']    = str(datetime.datetime.fromtimestamp(i['runtime']))
             i['nextruntime']= str(datetime.datetime.fromtimestamp(i['nextruntime']))
             item = QtGui.QTreeWidgetItem([i['taskname'], i['name'],i['runtime'], i['nextruntime']])
@@ -114,28 +112,32 @@ class TaskUI(QtGui.QDialog):
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
         self.ui.robotid.addItem(u'-选择采集方案-', QtCore.QVariant(0))
         for i in robotList:
-            i['robotid']   = str(i['robotid'])
-            i['name']       = unicode(i['name'])
             self.ui.robotid.addItem(i['name'], QtCore.QVariant(i['robotid']))
 
     def SelectRobot(self, index):
         self.robotid = self.ui.robotid.itemData(index).toString()
 
     def verify(self):
-        a = self.ui.taskname.text()
-        print type(a)
-        a = a.toUtf8()
-        print type(a)
-        a = a.data()
-        print a.decode('utf-8').encode('gb2312')
-        '''
-        self.taskname   = unicode(str(self.ui.taskname.text().toUtf8()), 'utf8', 'gb2312')
-        #unicode(self.ui.TextCode.toPlainText().toUtf8(),'utf8', 'ignore')
-        #self.loopperiod = str(self.ui.loopperiod.value())
-        #self.runtime    = str(self.ui.runtime.dateTime())
+        #self.taskname   = self.ui.taskname.text().toUtf8().data()
+        self.taskname   = Func.toStr(self.ui.taskname.text())
+
+        #self.taskname   = self.ui.taskname.text().toLocal8Bit().data()
         print self.taskname
-        #, self.robotid, self.loopperiod, self.runtime
-        '''
+        print type(self.taskname)
+        #print unicode(self.taskname,'gbk','ignore')
+        u = self.taskname.decode('gb18030').encode('utf-8')
+        print type(u)
+        print u'taskname: %s' % self.taskname.decode('gb18030').encode('utf-8')
+        return
+
+        self.isloop     = (self.ui.isloop.isChecked() and [1] or [0])[0]
+        self.loopperiod = self.ui.loopperiod.value()
+        self.runtime    = Func.toTimestamp(self.ui.runtime.dateTime())
+        print self.taskname, self.robotid, self.loopperiod, self.runtime
+        if self.taskname and self.robotid:
+            print "INSERT INTO `pre_robots_task` (`robotid` ,`taskname` ,`loop` ,`loopperiod` ,`runtime`)VALUES ('%s',  '%s',  '%d',  '%d',  '%d')" % (self.robotid, self.taskname, self.isloop, self.loopperiod, self.runtime)
+            #_G['DB'].execute("INSERT INTO `pre_robots_task` (`robotid` ,`taskname` ,`loop` ,`loopperiod` ,`runtime`)VALUES ('"+self.robotid+"',  '"+self.taskname+"',  '"+self.isloop+"',  '"+self.loopperiod+"',  '"+self.runtime+"')")
+            self.accept()
 
 
 class RobotUI(QtGui.QDialog):
@@ -168,11 +170,11 @@ class DatabaseUI(QtGui.QDialog):
         self.connect(self.ui.databaseSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def verify(self):
+        conn = None
         dbhost  = str(self.ui.dbhost.text())
         dbname  = str(self.ui.dbname.text())
         dbuser  = str(self.ui.dbuser.text())
         dbpw    = str(self.ui.dbpw.text())
-
         if dbhost and dbname and dbuser and dbpw:
             conn = Connection(host=dbhost,database=dbname,user=dbuser,password=dbpw)
             if conn and conn._db is not None:
@@ -183,17 +185,38 @@ class DatabaseUI(QtGui.QDialog):
                 _G['dbuser']  = dbuser
                 _G['dbpw']    = dbpw
                 self.accept()
-        if _G['DB']==None or _G['conn']==None:
-            _G['DB'] = _G['conn'] = None
+        if conn==None or conn._db==None:
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
 
-class func():
-    pass
+class Func:
+    def toStr(self, strr):
+        if type(strr)==QtCore.QString:
+            strr = strr.toLocal8Bit().data()
+        return strr
+
+    def iConv(self, strr, srcencode='gb2312', dstencode='utf-8'):
+        if isinstance(strr, unicode):
+            return strr.encode(dstencode)
+        elif isinstance(strr, basestring):
+            return strr.decode(srcencode).encode(dstencode)
+        else:
+            return strr
+
+    def toTimestamp(self, val):
+        if type(val)==QtCore.QDateTime:
+            val = self.toStr(val.toString('yyyy-MM-dd hh:mm:ss'))
+            val = time.strptime(val, '%Y-%m-%d %H:%M:%S')
+            val = time.mktime(val)
+        return val
+
+    def fromTimestamp(self, val):
+        pass
 
 
 if __name__ == "__main__":
     _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
+    Func = Func()
 
     app = QtGui.QApplication(sys.argv)
     Pycollectapp = PycollectUI()
