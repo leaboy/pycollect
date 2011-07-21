@@ -44,12 +44,12 @@ class PycollectUI(QtGui.QMainWindow):
     def TaskDialog(self):
         Dialog = TaskUI(u'添加任务', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
-            print Dialog.isloop
+            self.getTaskList()
 
     def RobotDialog(self):
         Dialog = RobotUI(u'添加采集器', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
-            self.SaveRegular(Dialog.senderName(), Dialog.senderCodes())
+            print 'save robot'
 
     def DatabaseDialog(self, flag=False):
         Dialog = DatabaseUI(u'数据库配置', flag, self)
@@ -80,10 +80,11 @@ class PycollectUI(QtGui.QMainWindow):
 
     def getTaskList(self):
         if _G['conn']==None: return
+        self.ui.tasklist.clear()
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
         for i in taskList:
             i['runtime']    = str(datetime.datetime.fromtimestamp(i['runtime']))
-            i['nextruntime']= str(datetime.datetime.fromtimestamp(i['nextruntime']))
+            i['nextruntime']= (i['nextruntime'] and [str(datetime.datetime.fromtimestamp(i['nextruntime']))] or ['-'])[0]
             item = QtGui.QTreeWidgetItem([i['taskname'], i['name'],i['runtime'], i['nextruntime']])
             self.ui.tasklist.addTopLevelItem(item)
 
@@ -118,25 +119,13 @@ class TaskUI(QtGui.QDialog):
         self.robotid = self.ui.robotid.itemData(index).toString()
 
     def verify(self):
-        #self.taskname   = self.ui.taskname.text().toUtf8().data()
         self.taskname   = Func.toStr(self.ui.taskname.text())
-
-        #self.taskname   = self.ui.taskname.text().toLocal8Bit().data()
-        print self.taskname
-        print type(self.taskname)
-        #print unicode(self.taskname,'gbk','ignore')
-        u = self.taskname.decode('gb18030').encode('utf-8')
-        print type(u)
-        print u'taskname: %s' % self.taskname.decode('gb18030').encode('utf-8')
-        return
-
+        self.robotid    = int(Func.toStr(self.robotid))
         self.isloop     = (self.ui.isloop.isChecked() and [1] or [0])[0]
         self.loopperiod = self.ui.loopperiod.value()
         self.runtime    = Func.toTimestamp(self.ui.runtime.dateTime())
-        print self.taskname, self.robotid, self.loopperiod, self.runtime
         if self.taskname and self.robotid:
-            print "INSERT INTO `pre_robots_task` (`robotid` ,`taskname` ,`loop` ,`loopperiod` ,`runtime`)VALUES ('%s',  '%s',  '%d',  '%d',  '%d')" % (self.robotid, self.taskname, self.isloop, self.loopperiod, self.runtime)
-            #_G['DB'].execute("INSERT INTO `pre_robots_task` (`robotid` ,`taskname` ,`loop` ,`loopperiod` ,`runtime`)VALUES ('"+self.robotid+"',  '"+self.taskname+"',  '"+self.isloop+"',  '"+self.loopperiod+"',  '"+self.runtime+"')")
+            _G['DB'].execute("INSERT INTO `pre_robots_task` (`robotid` ,`taskname` ,`loop` ,`loopperiod` ,`runtime`)VALUES ('%s',  '%s',  '%d',  '%d',  '%d')" % (self.robotid, self.taskname, self.isloop, self.loopperiod, self.runtime))
             self.accept()
 
 
@@ -149,8 +138,29 @@ class RobotUI(QtGui.QDialog):
 
         self.setWindowTitle(title)
 
+        self.connect(self.ui.robotSave, QtCore.SIGNAL("clicked()"), self.verify)
+
     def verify(self):
-        pass
+        robotname   = Func.toStr(self.ui.robotname.text())
+        speed       = self.ui.speed.value()
+        threads     = self.ui.threads.value()
+        autourl     = Func.toStr(self.ui.autourl.text())
+        listpagestart = Func.toStr(self.ui.listpagestart.text())
+        listpageend = Func.toStr(self.ui.listpageend.text())
+        wildcardlen = Func.toStr(self.ui.wildcardlen.text())
+        stockdata   = Func.toStr(self.ui.stockdata.text())
+        manualurl   = Func.toStr(self.ui.manualurl.text())
+
+        encode      = Func.toStr(self.ui.encode.text())
+        subjecturlrule = Func.toStr(self.ui.subjecturlrule.text())
+        subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.text())
+        subjectrule = Func.toStr(self.ui.subjectrule.text())
+        messagerule = Func.toStr(self.ui.messagerule.text())
+        reverseorder= (self.ui.reverseorder.isChecked() and [1] or [0])[0]
+        onlylinks   = (self.ui.onlylinks.isChecked() and [1] or [0])[0]
+        downloadmode= (self.ui.downloadmode.isChecked() and [1] or [0])[0]
+        extension   = Func.toStr(self.ui.extension.text())
+        importSQL   = Func.toStr(self.ui.extension.toPlainText())
 
 
 class DatabaseUI(QtGui.QDialog):
@@ -192,6 +202,7 @@ class Func:
     def toStr(self, strr):
         if type(strr)==QtCore.QString:
             strr = strr.toLocal8Bit().data()
+            strr = self.iConv(strr)
         return strr
 
     def iConv(self, strr, srcencode='gb2312', dstencode='utf-8'):
@@ -206,7 +217,7 @@ class Func:
         if type(val)==QtCore.QDateTime:
             val = self.toStr(val.toString('yyyy-MM-dd hh:mm:ss'))
             val = time.strptime(val, '%Y-%m-%d %H:%M:%S')
-            val = time.mktime(val)
+            val = int(time.mktime(val))
         return val
 
     def fromTimestamp(self, val):

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Main.ui'
 #
-# Created: Fri Jul 15 11:12:54 2011
+# Created: Thu Jul 21 10:31:54 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -18,7 +18,11 @@ class Ui_MainWindow(object):
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tasklist = QtGui.QTreeWidget(self.centralwidget)
+        self.tasklist.setLineWidth(0)
+        self.tasklist.setIndentation(1)
+        self.tasklist.setItemsExpandable(False)
         self.tasklist.setObjectName("tasklist")
+        self.tasklist.header().setSortIndicatorShown(True)
         self.verticalLayout.addWidget(self.tasklist)
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtGui.QStatusBar(MainWindow)
@@ -68,6 +72,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
+        self.tasklist.setSortingEnabled(True)
         self.tasklist.headerItem().setText(0, QtGui.QApplication.translate("MainWindow", "任务名称", None, QtGui.QApplication.UnicodeUTF8))
         self.tasklist.headerItem().setText(1, QtGui.QApplication.translate("MainWindow", "采集方案", None, QtGui.QApplication.UnicodeUTF8))
         self.tasklist.headerItem().setText(2, QtGui.QApplication.translate("MainWindow", "执行时间", None, QtGui.QApplication.UnicodeUTF8))

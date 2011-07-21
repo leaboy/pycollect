@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Robot.ui'
 #
-# Created: Tue Jul 19 14:18:23 2011
+# Created: Thu Jul 21 11:29:05 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -401,14 +401,14 @@ class Ui_RobotDialog(object):
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_11.addItem(spacerItem)
-        self.pushButton = QtGui.QPushButton(RobotDialog)
+        self.robotSave = QtGui.QPushButton(RobotDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
-        self.pushButton.setSizePolicy(sizePolicy)
-        self.pushButton.setObjectName("pushButton")
-        self.horizontalLayout_11.addWidget(self.pushButton)
+        sizePolicy.setHeightForWidth(self.robotSave.sizePolicy().hasHeightForWidth())
+        self.robotSave.setSizePolicy(sizePolicy)
+        self.robotSave.setObjectName("robotSave")
+        self.horizontalLayout_11.addWidget(self.robotSave)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_11.addItem(spacerItem1)
         self.verticalLayout.addLayout(self.horizontalLayout_11)
@@ -456,5 +456,5 @@ class Ui_RobotDialog(object):
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#accaef;\">注：采集完成后执行设置的SQL语句保存到数据库<br />数据：</span><span style=\" font-style:italic; color:#accaef;\">[taskid], [robotid], [key], [url], [title], [content], [runtime]</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), QtGui.QApplication.translate("RobotDialog", "导出设置", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton.setText(QtGui.QApplication.translate("RobotDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
+        self.robotSave.setText(QtGui.QApplication.translate("RobotDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
 
