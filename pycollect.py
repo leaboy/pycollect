@@ -14,6 +14,7 @@ import re, sys, time, datetime, os
 import threading
 import httplib, urllib
 import hashlib
+import simplejson
 from urlparse import urlparse,urljoin
 
 from iniFile import *
@@ -141,26 +142,42 @@ class RobotUI(QtGui.QDialog):
         self.connect(self.ui.robotSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def verify(self):
-        robotname   = Func.toStr(self.ui.robotname.text())
-        speed       = self.ui.speed.value()
-        threads     = self.ui.threads.value()
-        autourl     = Func.toStr(self.ui.autourl.text())
-        listpagestart = Func.toStr(self.ui.listpagestart.text())
-        listpageend = Func.toStr(self.ui.listpageend.text())
-        wildcardlen = Func.toStr(self.ui.wildcardlen.text())
-        stockdata   = Func.toStr(self.ui.stockdata.text())
-        manualurl   = Func.toStr(self.ui.manualurl.text())
+        robotname       = Func.toStr(self.ui.robotname.text())
+        speed           = self.ui.speed.value()
+        threads         = self.ui.threads.value()
 
-        encode      = Func.toStr(self.ui.encode.text())
-        subjecturlrule = Func.toStr(self.ui.subjecturlrule.text())
-        subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.text())
-        subjectrule = Func.toStr(self.ui.subjectrule.text())
-        messagerule = Func.toStr(self.ui.messagerule.text())
-        reverseorder= (self.ui.reverseorder.isChecked() and [1] or [0])[0]
-        onlylinks   = (self.ui.onlylinks.isChecked() and [1] or [0])[0]
-        downloadmode= (self.ui.downloadmode.isChecked() and [1] or [0])[0]
-        extension   = Func.toStr(self.ui.extension.text())
-        importSQL   = Func.toStr(self.ui.extension.toPlainText())
+        autourl         = Func.toStr(self.ui.autourl.text())
+        listpagestart   = self.ui.listpagestart.value()
+        listpageend     = self.ui.listpageend.value()
+        wildcardlen     = self.ui.wildcardlen.value()
+        manualurl       = Func.toStr(self.ui.manualurl.toPlainText())
+        stockdata       = Func.toStr(self.ui.stockdata.text())
+
+        encode          = Func.toStr(self.ui.encode.text())
+        subjecturlrule  = Func.toStr(self.ui.subjecturlrule.toPlainText())
+        subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.toPlainText())
+        subjectrule     = Func.toStr(self.ui.subjectrule.toPlainText())
+        messagerule     = Func.toStr(self.ui.messagerule.toPlainText())
+        reverseorder    = (self.ui.reverseorder.isChecked() and [1] or [0])[0]
+        onlylinks       = (self.ui.onlylinks.isChecked() and [1] or [0])[0]
+        downloadmode    = (self.ui.downloadmode.isChecked() and [1] or [0])[0]
+        extension       = Func.toStr(self.ui.extension.text())
+        importSQL       = Func.toStr(self.ui.importSQL.toPlainText())
+
+        listurl = self.serializeListUrl(autourl, manualurl)
+
+        print type(robotname), type(speed), type(threads), type(autourl), type(listpagestart), type(listpageend), type(wildcardlen), type(manualurl), type(stockdata)
+        print 'val: %s, %d, %d, %s, %d, %d, %d, %s, %s,     %s, %s, %s, %s, %s, %d, %d, %d, %s,     %s' % (robotname, speed, threads, autourl, listpagestart, listpageend, wildcardlen, manualurl, stockdata, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, reverseorder, onlylinks, downloadmode, extension, importSQL)
+        #,     %s, %s, %s, %s, %s, %d, %d, %d, %s,     %s
+        #, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, reverseorder, onlylinks, downloadmode, extension, importSQL
+        if robotname and (autourl or manualurl):
+            _G['DB'].execute("INSERT INTO `pycollect`.`pre_robots` (`name`, `listurl`, `stockdata`, `listpagestart`, `listpageend`, `wildcardlen`, `reverseorder`, `encode`, `subjecturlrule`, `subjecturllinkrule`, `subjectrule`, `messagerule`, `onlylinks`, `downloadmode`, `extension`, `importSQL`) VALUES ('%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s')" % (robotname, listurl, stockdata, listpagestart, listpageend, wildcardlen, reverseorder, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, onlylinks, downloadmode, extension, importSQL))
+            self.accept()
+
+    def serializeListUrl(self, autourl, manualurl):
+        manualurlList = manualurl.splitlines()
+        listurl = {'auto': autourl, 'manual': manualurl}
+        return simplejson.dumps(listurl)
 
 
 class DatabaseUI(QtGui.QDialog):
