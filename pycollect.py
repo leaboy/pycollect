@@ -35,9 +35,11 @@ class PycollectUI(QtGui.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        # menu
+        # menu signal
         self.ui.taskadd.triggered.connect(self.TaskDialog)
+        self.ui.m_tasklist.triggered.connect(self.getTaskList)
         self.ui.robotadd.triggered.connect(self.RobotDialog)
+        self.ui.m_robotlist.triggered.connect(self.getRobotList)
         self.ui.mquit.triggered.connect(QtGui.qApp.quit)
 
         self.ui.database.triggered.connect(self.DatabaseDialog)
@@ -50,7 +52,7 @@ class PycollectUI(QtGui.QMainWindow):
     def RobotDialog(self):
         Dialog = RobotUI(u'添加采集器', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
-            print 'save robot'
+            self.getRobotList()
 
     def DatabaseDialog(self, flag=False):
         Dialog = DatabaseUI(u'数据库配置', flag, self)
@@ -79,15 +81,34 @@ class PycollectUI(QtGui.QMainWindow):
             time.sleep(1)
             self.DatabaseDialog()
 
+    def setHeaderMainList(self, header):
+        self.ui.mainlist.setColumnCount(len(header))
+        self.ui.mainlist.setHeaderLabels(header)
+        self.ui.mainlist.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.ui.mainlist.clear()
+
     def getTaskList(self):
         if _G['conn']==None: return
-        self.ui.tasklist.clear()
+        self.setHeaderMainList([u'任务名称', u'采集器', u'执行时间', u'下次执行时间', u'状态'])
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
         for i in taskList:
             i['runtime']    = str(datetime.datetime.fromtimestamp(i['runtime']))
             i['nextruntime']= (i['nextruntime'] and [str(datetime.datetime.fromtimestamp(i['nextruntime']))] or ['-'])[0]
             item = QtGui.QTreeWidgetItem([i['taskname'], i['name'],i['runtime'], i['nextruntime']])
-            self.ui.tasklist.addTopLevelItem(item)
+            self.ui.mainlist.addTopLevelItem(item)
+
+    def getRobotList(self):
+        if _G['conn']==None: return
+        self.setHeaderMainList([u'采集器名称', u'编码', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式', u'文件后缀'])
+        robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
+        for i in robotList:
+            i['speed']          = str(i['speed'])
+            i['threads']        = str(i['threads'])
+            i['reverseorder']   = (i['reverseorder'] and [u'是'] or [''])[0]
+            i['onlylinks']      = (i['onlylinks'] and [u'是'] or [''])[0]
+            i['downloadmode']   = (i['downloadmode'] and [u'是'] or [''])[0]
+            item = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['onlylinks'], i['downloadmode'], i['extension']])
+            self.ui.mainlist.addTopLevelItem(item)
 
 
 class TaskUI(QtGui.QDialog):
@@ -100,10 +121,10 @@ class TaskUI(QtGui.QDialog):
         self.setWindowTitle(title)
         self.ui.runtime.setMinimumDateTime(QtCore.QDateTime.currentDateTime())
 
-        ''' get robot list from database '''
+        # get robot list from database
         self.getRobotList()
 
-        ''' init form field '''
+        # init form field
         self.taskname = self.robotid = self.isloop = self.loopperiod = self.runtime = None
 
         self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.SelectRobot)
@@ -141,18 +162,21 @@ class RobotUI(QtGui.QDialog):
 
         self.connect(self.ui.robotSave, QtCore.SIGNAL("clicked()"), self.verify)
 
+    def serializeListUrl(self, autourl, manualurl):
+        manualurlList = manualurl.splitlines()
+        listurl = {'auto': autourl, 'manual': manualurl}
+        return simplejson.dumps(listurl)
+
     def verify(self):
         robotname       = Func.toStr(self.ui.robotname.text())
         speed           = self.ui.speed.value()
         threads         = self.ui.threads.value()
-
         autourl         = Func.toStr(self.ui.autourl.text())
         listpagestart   = self.ui.listpagestart.value()
         listpageend     = self.ui.listpageend.value()
         wildcardlen     = self.ui.wildcardlen.value()
         manualurl       = Func.toStr(self.ui.manualurl.toPlainText())
         stockdata       = Func.toStr(self.ui.stockdata.text())
-
         encode          = Func.toStr(self.ui.encode.text())
         subjecturlrule  = Func.toStr(self.ui.subjecturlrule.toPlainText())
         subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.toPlainText())
@@ -163,21 +187,11 @@ class RobotUI(QtGui.QDialog):
         downloadmode    = (self.ui.downloadmode.isChecked() and [1] or [0])[0]
         extension       = Func.toStr(self.ui.extension.text())
         importSQL       = Func.toStr(self.ui.importSQL.toPlainText())
-
+        # serialize listurl to json
         listurl = self.serializeListUrl(autourl, manualurl)
-
-        print type(robotname), type(speed), type(threads), type(autourl), type(listpagestart), type(listpageend), type(wildcardlen), type(manualurl), type(stockdata)
-        print 'val: %s, %d, %d, %s, %d, %d, %d, %s, %s,     %s, %s, %s, %s, %s, %d, %d, %d, %s,     %s' % (robotname, speed, threads, autourl, listpagestart, listpageend, wildcardlen, manualurl, stockdata, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, reverseorder, onlylinks, downloadmode, extension, importSQL)
-        #,     %s, %s, %s, %s, %s, %d, %d, %d, %s,     %s
-        #, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, reverseorder, onlylinks, downloadmode, extension, importSQL
         if robotname and (autourl or manualurl):
-            _G['DB'].execute("INSERT INTO `pycollect`.`pre_robots` (`name`, `listurl`, `stockdata`, `listpagestart`, `listpageend`, `wildcardlen`, `reverseorder`, `encode`, `subjecturlrule`, `subjecturllinkrule`, `subjectrule`, `messagerule`, `onlylinks`, `downloadmode`, `extension`, `importSQL`) VALUES ('%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s')" % (robotname, listurl, stockdata, listpagestart, listpageend, wildcardlen, reverseorder, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, onlylinks, downloadmode, extension, importSQL))
+            _G['DB'].execute("INSERT INTO `pycollect`.`pre_robots` (`name`, `speed`, `threads`, `listurl`, `stockdata`, `listpagestart`, `listpageend`, `wildcardlen`, `reverseorder`, `encode`, `subjecturlrule`, `subjecturllinkrule`, `subjectrule`, `messagerule`, `onlylinks`, `downloadmode`, `extension`, `importSQL`) VALUES ('%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s')" % (robotname, speed, threads, listurl, stockdata, listpagestart, listpageend, wildcardlen, reverseorder, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, onlylinks, downloadmode, extension, importSQL))
             self.accept()
-
-    def serializeListUrl(self, autourl, manualurl):
-        manualurlList = manualurl.splitlines()
-        listurl = {'auto': autourl, 'manual': manualurl}
-        return simplejson.dumps(listurl)
 
 
 class DatabaseUI(QtGui.QDialog):
@@ -249,16 +263,16 @@ if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     Pycollectapp = PycollectUI()
 
-    ''' load stylesheet '''
+    # load stylesheet
     #styleFile = QtCore.QFile("stylesheet.qss")
     #if styleFile.open(QtCore.QIODevice.ReadOnly):
     #    Pycollectapp.setStyleSheet(str(styleFile.readAll()))
 
-    ''' show main window '''
+    # show main window
     Pycollectapp.show()
-    ''' init database connection '''
+    # init database connection
     Pycollectapp.iniDatabaseConn()
-    ''' get task list from database '''
+    # get task list from database
     Pycollectapp.getTaskList()
 
     sys.exit(app.exec_())

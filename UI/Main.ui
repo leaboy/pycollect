@@ -16,50 +16,13 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTreeWidget" name="tasklist">
-      <property name="lineWidth">
-       <number>0</number>
-      </property>
+     <widget class="QTreeWidget" name="mainlist">
       <property name="indentation">
-       <number>1</number>
-      </property>
-      <property name="itemsExpandable">
-       <bool>false</bool>
+       <number>0</number>
       </property>
       <property name="sortingEnabled">
        <bool>true</bool>
       </property>
-      <attribute name="headerShowSortIndicator" stdset="0">
-       <bool>true</bool>
-      </attribute>
-      <attribute name="headerShowSortIndicator" stdset="0">
-       <bool>true</bool>
-      </attribute>
-      <column>
-       <property name="text">
-        <string>任务名称</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>采集方案</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>执行时间</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>下次执行时间</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>状态</string>
-       </property>
-      </column>
      </widget>
     </item>
    </layout>
@@ -79,7 +42,10 @@
      <string>添加</string>
     </property>
     <addaction name="taskadd"/>
+    <addaction name="m_tasklist"/>
+    <addaction name="separator"/>
     <addaction name="robotadd"/>
+    <addaction name="m_robotlist"/>
     <addaction name="separator"/>
     <addaction name="mquit"/>
    </widget>
@@ -98,7 +64,7 @@
    </widget>
    <widget class="QMenu" name="main_m_set">
     <property name="title">
-     <string>系统配置</string>
+     <string>设置</string>
     </property>
     <addaction name="database"/>
    </widget>
@@ -114,7 +80,7 @@
   </action>
   <action name="robotadd">
    <property name="text">
-    <string>添加采集方案</string>
+    <string>添加采集器</string>
    </property>
   </action>
   <action name="mquit">
@@ -140,6 +106,16 @@
   <action name="database">
    <property name="text">
     <string>数据库配置</string>
+   </property>
+  </action>
+  <action name="m_tasklist">
+   <property name="text">
+    <string>查看列表</string>
+   </property>
+  </action>
+  <action name="m_robotlist">
+   <property name="text">
+    <string>查看列表</string>
    </property>
   </action>
  </widget>

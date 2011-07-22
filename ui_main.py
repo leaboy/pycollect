@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Main.ui'
 #
-# Created: Thu Jul 21 10:31:54 2011
+# Created: Fri Jul 22 15:27:34 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,13 +17,10 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.tasklist = QtGui.QTreeWidget(self.centralwidget)
-        self.tasklist.setLineWidth(0)
-        self.tasklist.setIndentation(1)
-        self.tasklist.setItemsExpandable(False)
-        self.tasklist.setObjectName("tasklist")
-        self.tasklist.header().setSortIndicatorShown(True)
-        self.verticalLayout.addWidget(self.tasklist)
+        self.mainlist = QtGui.QTreeWidget(self.centralwidget)
+        self.mainlist.setIndentation(0)
+        self.mainlist.setObjectName("mainlist")
+        self.verticalLayout.addWidget(self.mainlist)
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -54,8 +51,15 @@ class Ui_MainWindow(object):
         self.about.setObjectName("about")
         self.database = QtGui.QAction(MainWindow)
         self.database.setObjectName("database")
+        self.m_tasklist = QtGui.QAction(MainWindow)
+        self.m_tasklist.setObjectName("m_tasklist")
+        self.m_robotlist = QtGui.QAction(MainWindow)
+        self.m_robotlist.setObjectName("m_robotlist")
         self.main_m_add.addAction(self.taskadd)
+        self.main_m_add.addAction(self.m_tasklist)
+        self.main_m_add.addSeparator()
         self.main_m_add.addAction(self.robotadd)
+        self.main_m_add.addAction(self.m_robotlist)
         self.main_m_add.addSeparator()
         self.main_m_add.addAction(self.mquit)
         self.main_m_log.addAction(self.view)
@@ -72,21 +76,18 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
-        self.tasklist.setSortingEnabled(True)
-        self.tasklist.headerItem().setText(0, QtGui.QApplication.translate("MainWindow", "任务名称", None, QtGui.QApplication.UnicodeUTF8))
-        self.tasklist.headerItem().setText(1, QtGui.QApplication.translate("MainWindow", "采集方案", None, QtGui.QApplication.UnicodeUTF8))
-        self.tasklist.headerItem().setText(2, QtGui.QApplication.translate("MainWindow", "执行时间", None, QtGui.QApplication.UnicodeUTF8))
-        self.tasklist.headerItem().setText(3, QtGui.QApplication.translate("MainWindow", "下次执行时间", None, QtGui.QApplication.UnicodeUTF8))
-        self.tasklist.headerItem().setText(4, QtGui.QApplication.translate("MainWindow", "状态", None, QtGui.QApplication.UnicodeUTF8))
+        self.mainlist.setSortingEnabled(True)
         self.main_m_add.setTitle(QtGui.QApplication.translate("MainWindow", "添加", None, QtGui.QApplication.UnicodeUTF8))
         self.main_m_log.setTitle(QtGui.QApplication.translate("MainWindow", "日志", None, QtGui.QApplication.UnicodeUTF8))
         self.main_m_help.setTitle(QtGui.QApplication.translate("MainWindow", "帮助", None, QtGui.QApplication.UnicodeUTF8))
-        self.main_m_set.setTitle(QtGui.QApplication.translate("MainWindow", "系统配置", None, QtGui.QApplication.UnicodeUTF8))
+        self.main_m_set.setTitle(QtGui.QApplication.translate("MainWindow", "设置", None, QtGui.QApplication.UnicodeUTF8))
         self.taskadd.setText(QtGui.QApplication.translate("MainWindow", "添加任务", None, QtGui.QApplication.UnicodeUTF8))
-        self.robotadd.setText(QtGui.QApplication.translate("MainWindow", "添加采集方案", None, QtGui.QApplication.UnicodeUTF8))
+        self.robotadd.setText(QtGui.QApplication.translate("MainWindow", "添加采集器", None, QtGui.QApplication.UnicodeUTF8))
         self.mquit.setText(QtGui.QApplication.translate("MainWindow", "退出", None, QtGui.QApplication.UnicodeUTF8))
         self.view.setText(QtGui.QApplication.translate("MainWindow", "查看日志", None, QtGui.QApplication.UnicodeUTF8))
         self.save.setText(QtGui.QApplication.translate("MainWindow", "导出日志", None, QtGui.QApplication.UnicodeUTF8))
         self.about.setText(QtGui.QApplication.translate("MainWindow", "关于", None, QtGui.QApplication.UnicodeUTF8))
         self.database.setText(QtGui.QApplication.translate("MainWindow", "数据库配置", None, QtGui.QApplication.UnicodeUTF8))
+        self.m_tasklist.setText(QtGui.QApplication.translate("MainWindow", "查看列表", None, QtGui.QApplication.UnicodeUTF8))
+        self.m_robotlist.setText(QtGui.QApplication.translate("MainWindow", "查看列表", None, QtGui.QApplication.UnicodeUTF8))
 
