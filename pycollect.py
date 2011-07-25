@@ -110,11 +110,12 @@ class MainUI(QtGui.QMainWindow):
         self.setHeaderMainList([u'采集器名称', u'编码', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式', u'文件后缀'])
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
         for i in robotList:
+            yesstr = u'√'; nostr = ''
             i['speed']          = str(i['speed'])
             i['threads']        = str(i['threads'])
-            i['reverseorder']   = (i['reverseorder'] and [u'是'] or [''])[0]
-            i['onlylinks']      = (i['onlylinks'] and [u'是'] or [''])[0]
-            i['downloadmode']   = (i['downloadmode'] and [u'是'] or [''])[0]
+            i['reverseorder']   = (i['reverseorder'] and [yesstr] or [nostr])[0]
+            i['onlylinks']      = (i['onlylinks'] and [yesstr] or [nostr])[0]
+            i['downloadmode']   = (i['downloadmode'] and [yesstr] or [nostr])[0]
             item = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['onlylinks'], i['downloadmode'], i['extension']])
             self.ui.mainlist.addTopLevelItem(item)
 
@@ -162,7 +163,7 @@ class TaskUI(QtGui.QDialog):
         self.loopperiod = self.ui.loopperiod.value()
         self.runtime    = Func.toTimestamp(self.ui.runtime.dateTime())
         if self.taskname and self.robotid:
-            _G['DB'].execute("INSERT INTO `pre_robots_task` (`robotid` ,`taskname` ,`loop` ,`loopperiod` ,`runtime`)VALUES ('%s',  '%s',  '%d',  '%d',  '%d')" % (self.robotid, self.taskname, self.isloop, self.loopperiod, self.runtime))
+            _G['DB'].insert('pre_robots_task', robotid=self.robotid, taskname=self.taskname, loop=self.isloop, loopperiod=self.loopperiod, runtime=self.runtime)
             self.accept()
 
 
@@ -205,7 +206,7 @@ class RobotUI(QtGui.QDialog):
         # serialize listurl to json
         listurl = self.serializeListUrl(autourl, manualurl)
         if robotname and (autourl or manualurl):
-            _G['DB'].execute("INSERT INTO `pycollect`.`pre_robots` (`name`, `speed`, `threads`, `listurl`, `stockdata`, `listpagestart`, `listpageend`, `wildcardlen`, `reverseorder`, `encode`, `subjecturlrule`, `subjecturllinkrule`, `subjectrule`, `messagerule`, `onlylinks`, `downloadmode`, `extension`, `importSQL`) VALUES ('%s', '%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s')" % (robotname, speed, threads, listurl, stockdata, listpagestart, listpageend, wildcardlen, reverseorder, encode, subjecturlrule, subjecturllinkrule, subjectrule, messagerule, onlylinks, downloadmode, extension, importSQL))
+            _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, encode=encode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, onlylinks=onlylinks, downloadmode=downloadmode, extension=extension, importSQL=importSQL)
             self.accept()
 
 
