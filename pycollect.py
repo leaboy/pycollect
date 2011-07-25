@@ -28,12 +28,13 @@ from ui_task import Ui_TaskDialog
 from ui_database import Ui_DatabaseDialog
 
 
-class PycollectUI(QtGui.QMainWindow):
+class MainUI(QtGui.QMainWindow):
     def __init__(self, parent=None):
-        super(PycollectUI, self).__init__(parent)
+        super(MainUI, self).__init__(parent)
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.threadList = []
 
         # menu signal
         self.ui.taskadd.triggered.connect(self.TaskDialog)
@@ -88,6 +89,7 @@ class PycollectUI(QtGui.QMainWindow):
         self.ui.mainlist.clear()
 
     def getTaskList(self):
+        self.threadStop()
         if _G['conn']==None: return
         self.setHeaderMainList([u'任务名称', u'采集器', u'执行时间', u'下次执行时间', u'状态'])
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
@@ -97,7 +99,13 @@ class PycollectUI(QtGui.QMainWindow):
             item = QtGui.QTreeWidgetItem([i['taskname'], i['name'],i['runtime'], i['nextruntime']])
             self.ui.mainlist.addTopLevelItem(item)
 
+            t = RunTask(i, item, self)
+            self.threadList.append(t)
+            self.connect(t, QtCore.SIGNAL("Activated"), self.updateTaskState)
+            t.start()
+
     def getRobotList(self):
+        self.threadStop()
         if _G['conn']==None: return
         self.setHeaderMainList([u'采集器名称', u'编码', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式', u'文件后缀'])
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
@@ -110,6 +118,13 @@ class PycollectUI(QtGui.QMainWindow):
             item = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['onlylinks'], i['downloadmode'], i['extension']])
             self.ui.mainlist.addTopLevelItem(item)
 
+    def updateTaskState(self, state, item):
+        item.setText(4, state)
+
+    def threadStop(self):
+        if len(self.threadList)>0:
+            for i in self.threadList: i.stop()
+            del self.threadList[:]
 
 class TaskUI(QtGui.QDialog):
     def __init__(self, title, parent):
@@ -255,24 +270,55 @@ class Func:
         pass
 
 
+class RunTask(QtCore.QThread):
+    def __init__(self, taskinfo, item, parent=None):
+        QtCore.QThread.__init__(self, parent)
+        self.state = '0'
+        self.item = item
+        self.taskinfo = taskinfo
+        self.stoped = False
+
+    def stop(self):
+        self.stoped = True
+
+    def run(self):
+        taskid      = self.taskinfo['taskid']
+        robotid     = self.taskinfo['robotid']
+        isloop      = self.taskinfo['loop']
+        loopperiod  = self.taskinfo['loopperiod']
+        runtime     = self.taskinfo['runtime']
+        nextruntime = self.taskinfo['nextruntime']
+
+        while True:
+            if self.stoped: return
+
+            triggertime = (nextruntime > 0 and [nextruntime] or [runtime])[0]
+            currenttime = time.mktime(time.localtime())
+
+            if triggertime == currenttime:
+                self.state = '1'
+            elif triggertime < currenttime and isloop == 1:
+                nextruntime = triggertime + loopperiod
+                _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (nextruntime, taskid))
+            self.emit(QtCore.SIGNAL("Activated"), ('%s - %s') % (self.state,time.strftime('%Y-%m-%d %H:%M:%S')), self.item)
+            time.sleep(1)
+
+
+
+
 if __name__ == "__main__":
     _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
     Func = Func()
 
     app = QtGui.QApplication(sys.argv)
-    Pycollectapp = PycollectUI()
-
-    # load stylesheet
-    #styleFile = QtCore.QFile("stylesheet.qss")
-    #if styleFile.open(QtCore.QIODevice.ReadOnly):
-    #    Pycollectapp.setStyleSheet(str(styleFile.readAll()))
+    Mainapp = MainUI()
 
     # show main window
-    Pycollectapp.show()
+    Mainapp.show()
     # init database connection
-    Pycollectapp.iniDatabaseConn()
+    Mainapp.iniDatabaseConn()
     # get task list from database
-    Pycollectapp.getTaskList()
+    Mainapp.getTaskList()
 
     sys.exit(app.exec_())
