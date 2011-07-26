@@ -34,7 +34,15 @@ class MainUI(QtGui.QMainWindow):
 
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.threadList = []
+
+        self.list_with_task     = False
+        self.list_with_robot    = False
+        self.task_state_colnum  = 4
+        self.task_state_wait    = 'res/task_state_waiting.png'
+        self.task_state_run     = 'res/task_state_runing.png'
+
+        # {taskid: [idx, threadObject]}
+        self.threadList = {}
 
         # menu signal
         self.ui.taskadd.triggered.connect(self.TaskDialog)
@@ -89,43 +97,77 @@ class MainUI(QtGui.QMainWindow):
         self.ui.mainlist.clear()
 
     def getTaskList(self):
-        self.threadStop()
-        if _G['conn']==None: return
+        self.updateMainListFlag(True, False)
+        if _G['conn']==None:
+            return
         self.setHeaderMainList([u'任务名称', u'采集器', u'执行时间', u'下次执行时间', u'状态'])
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
-        for i in taskList:
-            i['runtime']    = str(datetime.datetime.fromtimestamp(i['runtime']))
-            i['nextruntime']= (i['nextruntime'] and [str(datetime.datetime.fromtimestamp(i['nextruntime']))] or ['-'])[0]
-            item = QtGui.QTreeWidgetItem([i['taskname'], i['name'],i['runtime'], i['nextruntime']])
+        for idx, val in enumerate(taskList):
+            taskid  = val['taskid']
+            runtime = Func.fromTimestamp(val['runtime'])
+            nextruntime = (val['nextruntime'] and [Func.fromTimestamp(val['nextruntime'])] or ['-'])[0]
+            item = QtGui.QTreeWidgetItem([val['taskname'], val['name'], runtime, nextruntime])
             self.ui.mainlist.addTopLevelItem(item)
-
-            t = RunTask(i, item, self)
-            self.threadList.append(t)
-            self.connect(t, QtCore.SIGNAL("Activated"), self.updateTaskState)
-            t.start()
+            item.setIcon(self.task_state_colnum, QtGui.QIcon(self.task_state_wait))
+            QtGui.QTreeWidgetItem(idx).setData(0, idx, QtCore.QVariant(taskid))
+            QtGui.QTreeWidgetItem(idx).setData(self.task_state_colnum, idx, QtCore.QVariant(0))
+            self.threadStart(val, taskid, idx)
 
     def getRobotList(self):
-        self.threadStop()
-        if _G['conn']==None: return
+        self.updateMainListFlag(False, True)
+        if _G['conn']==None:
+            return
         self.setHeaderMainList([u'采集器名称', u'编码', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式', u'文件后缀'])
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
-        for i in robotList:
+        for idx, val in enumerate(robotList):
             yesstr = u'√'; nostr = ''
-            i['speed']          = str(i['speed'])
-            i['threads']        = str(i['threads'])
-            i['reverseorder']   = (i['reverseorder'] and [yesstr] or [nostr])[0]
-            i['onlylinks']      = (i['onlylinks'] and [yesstr] or [nostr])[0]
-            i['downloadmode']   = (i['downloadmode'] and [yesstr] or [nostr])[0]
-            item = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['onlylinks'], i['downloadmode'], i['extension']])
+            val['speed']          = str(val['speed'])
+            val['threads']        = str(val['threads'])
+            val['reverseorder']   = (val['reverseorder'] and [yesstr] or [nostr])[0]
+            val['onlylinks']      = (val['onlylinks'] and [yesstr] or [nostr])[0]
+            val['downloadmode']   = (val['downloadmode'] and [yesstr] or [nostr])[0]
+            item = QtGui.QTreeWidgetItem([val['name'], val['encode'], val['speed'], val['threads'], val['reverseorder'], val['onlylinks'], val['downloadmode'], val['extension']])
             self.ui.mainlist.addTopLevelItem(item)
 
-    def updateTaskState(self, state, item):
-        item.setText(4, state)
+    def updateMainListFlag(self, task=True, robot=False):
+        self.list_with_task = task
+        self.list_with_robot = robot
 
-    def threadStop(self):
-        if len(self.threadList)>0:
-            for i in self.threadList: i.stop()
-            del self.threadList[:]
+    def updateListItem(self, state, idx):
+        '''change task state'''
+        if not self.list_with_task:
+            return
+        item = self.ui.mainlist.topLevelItem(idx)
+        print QtGui.QTreeWidgetItem(idx).data(self.task_state_colnum, idx).toInt()
+        return
+        curstate = Func._variantConv(item.data(self.task_state_colnum, idx), 'int')
+        if curstate!=state:
+            state = (state == 1 and [self.task_state_run] or [self.task_state_wait])[0]
+            item.setIcon(self.task_state_colnum, QtGui.QIcon(state))
+            QtGui.QTreeWidgetItem().setData(self.task_state_colnum, idx, QtCore.QVariant(1))
+
+    def threadStart(self, taskinfo, taskid, idx):
+        '''create threads if it's not exist'''
+        if self.threadList.has_key(taskid):
+            return
+        t = RunTask(taskinfo, idx, self)
+        # record
+        self.threadList[taskid] = [idx, t]
+        # accept signal
+        self.connect(t, QtCore.SIGNAL("Activated"), self.updateListItem)
+        t.start()
+
+    def threadStop(self, taskid=-1):
+        '''stop threads by taskid/all'''
+        if not len(self.threadList)>0 or (not self.threadList.has_key(taskid) and taskid!=-1):
+            return
+        if taskid == -1:
+            for i in self.threadList: i[1].stop()
+            self.threadList.clear()
+        else:
+            t = self.threadList[taskid]
+            t[1].stop()
+
 
 class TaskUI(QtGui.QDialog):
     def __init__(self, title, parent):
@@ -147,14 +189,15 @@ class TaskUI(QtGui.QDialog):
         self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def getRobotList(self):
-        if _G['conn']==None: return
+        if _G['conn']==None:
+            return
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
         self.ui.robotid.addItem(u'-选择采集方案-', QtCore.QVariant(0))
         for i in robotList:
             self.ui.robotid.addItem(i['name'], QtCore.QVariant(i['robotid']))
 
     def SelectRobot(self, index):
-        self.robotid = self.ui.robotid.itemData(index).toString()
+        self.robotid = Func._variantConv(self.ui.robotid.itemData(index), 'string')
 
     def verify(self):
         self.taskname   = Func.toStr(self.ui.taskname.text())
@@ -245,6 +288,7 @@ class DatabaseUI(QtGui.QDialog):
         if conn==None or conn._db==None:
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
 
+
 class Func:
     def toStr(self, strr):
         if type(strr)==QtCore.QString:
@@ -268,14 +312,32 @@ class Func:
         return val
 
     def fromTimestamp(self, val):
-        pass
+        return str(datetime.datetime.fromtimestamp(int(val)))
+
+    def _variantConv(self, variant, dst):
+        """Helper method to cast a QVariant to an integer
+        @arg variant: (QVariant)
+        @arg dst: int/string
+        @reuturn: int/QString
+        """
+        res = None
+        if not variant.isValid():
+            return
+        if dst=='int':
+            integer, ok = variant.toInt()
+            #print integer, ok
+            if ok:
+                res = integer
+        elif dst=='string':
+            res = variant.toString()
+        return res
 
 
 class RunTask(QtCore.QThread):
-    def __init__(self, taskinfo, item, parent=None):
+    def __init__(self, taskinfo, idx, parent=None):
         QtCore.QThread.__init__(self, parent)
-        self.state = '0'
-        self.item = item
+        self.state = 0
+        self.idx = idx
         self.taskinfo = taskinfo
         self.stoped = False
 
@@ -291,17 +353,18 @@ class RunTask(QtCore.QThread):
         nextruntime = self.taskinfo['nextruntime']
 
         while True:
-            if self.stoped: return
+            if self.stoped:
+                return
 
             triggertime = (nextruntime > 0 and [nextruntime] or [runtime])[0]
             currenttime = time.mktime(time.localtime())
 
             if triggertime == currenttime:
-                self.state = '1'
+                self.state = 1
             elif triggertime < currenttime and isloop == 1:
                 nextruntime = triggertime + loopperiod
                 _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (nextruntime, taskid))
-            self.emit(QtCore.SIGNAL("Activated"), ('%s - %s') % (self.state,time.strftime('%Y-%m-%d %H:%M:%S')), self.item)
+            self.emit(QtCore.SIGNAL("Activated"), self.state, self.idx)
             time.sleep(1)
 
 
