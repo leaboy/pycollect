@@ -37,7 +37,7 @@ class MainUI(QtGui.QMainWindow):
 
         self.list_with_task     = False
         self.list_with_robot    = False
-        self.task_state_colnum  = 4
+        self.task_state_col  = 0
         self.task_state_wait    = 'res/task_state_waiting.png'
         self.task_state_run     = 'res/task_state_runing.png'
 
@@ -93,25 +93,30 @@ class MainUI(QtGui.QMainWindow):
     def setHeaderMainList(self, header):
         self.ui.mainlist.setColumnCount(len(header))
         self.ui.mainlist.setHeaderLabels(header)
-        self.ui.mainlist.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        self.ui.mainlist.resizeColumnToContents(0)
         self.ui.mainlist.clear()
 
     def getTaskList(self):
         self.updateMainListFlag(True, False)
         if _G['conn']==None:
             return
-        self.setHeaderMainList([u'任务名称', u'采集器', u'执行时间', u'下次执行时间', u'状态'])
-        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid")
+        self.setHeaderMainList([u'ID', u'任务名称', u'采集器', u'执行时间', u'下次执行时间', u'状态'])
+        self.task_state_col = self.ui.mainlist.columnCount()-1
+        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid ORDER BY t.taskid")
         for idx, val in enumerate(taskList):
-            taskid  = val['taskid']
+            taskid  = str(val['taskid'])
             runtime = Func.fromTimestamp(val['runtime'])
             nextruntime = (val['nextruntime'] and [Func.fromTimestamp(val['nextruntime'])] or ['-'])[0]
-            item = QtGui.QTreeWidgetItem([val['taskname'], val['name'], runtime, nextruntime])
-            self.ui.mainlist.addTopLevelItem(item)
-            item.setIcon(self.task_state_colnum, QtGui.QIcon(self.task_state_wait))
-            QtGui.QTreeWidgetItem(idx).setData(0, idx, QtCore.QVariant(taskid))
-            QtGui.QTreeWidgetItem(idx).setData(self.task_state_colnum, idx, QtCore.QVariant(0))
+
+            taskItem = QtGui.QTreeWidgetItem([taskid, val['taskname'], val['name'], runtime, nextruntime])
+            taskItem.setIcon(self.task_state_col, QtGui.QIcon(self.task_state_wait))
+            taskItem.setData(0, idx, QtCore.QVariant(taskid))
+            #taskItem.setData(self.task_state_col, idx, QtCore.QVariant(0))
+            #print taskItem.data(0, idx).toInt()
+            self.ui.mainlist.addTopLevelItem(taskItem)
+
             self.threadStart(val, taskid, idx)
+        print self.threadList
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
@@ -133,18 +138,20 @@ class MainUI(QtGui.QMainWindow):
         self.list_with_task = task
         self.list_with_robot = robot
 
-    def updateListItem(self, state, idx):
+    def updateListItem(self, state, idx, taskid):
         '''change task state'''
         if not self.list_with_task:
             return
-        item = self.ui.mainlist.topLevelItem(idx)
-        print QtGui.QTreeWidgetItem(idx).data(self.task_state_colnum, idx).toInt()
+        taskItem = self.ui.mainlist.topLevelItem(idx)
+        #print taskid, taskItem.text(0)
+        #print taskItem.data(0, idx).toInt()
+        #self.threadStop(taskid)
         return
-        curstate = Func._variantConv(item.data(self.task_state_colnum, idx), 'int')
+        curstate = Func._variantConv(item.data(self.task_state_col, idx), 'int')
         if curstate!=state:
             state = (state == 1 and [self.task_state_run] or [self.task_state_wait])[0]
-            item.setIcon(self.task_state_colnum, QtGui.QIcon(state))
-            QtGui.QTreeWidgetItem().setData(self.task_state_colnum, idx, QtCore.QVariant(1))
+            item.setIcon(self.task_state_col, QtGui.QIcon(state))
+            QtGui.QTreeWidgetItem().setData(self.task_state_col, idx, QtCore.QVariant(1))
 
     def threadStart(self, taskinfo, taskid, idx):
         '''create threads if it's not exist'''
@@ -167,6 +174,7 @@ class MainUI(QtGui.QMainWindow):
         else:
             t = self.threadList[taskid]
             t[1].stop()
+            print 'Close %d' % taskid
 
 
 class TaskUI(QtGui.QDialog):
@@ -364,7 +372,7 @@ class RunTask(QtCore.QThread):
             elif triggertime < currenttime and isloop == 1:
                 nextruntime = triggertime + loopperiod
                 _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (nextruntime, taskid))
-            self.emit(QtCore.SIGNAL("Activated"), self.state, self.idx)
+            self.emit(QtCore.SIGNAL("Activated"), self.state, self.idx, taskid)
             time.sleep(1)
 
 
