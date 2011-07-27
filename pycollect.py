@@ -95,6 +95,8 @@ class MainUI(QtGui.QMainWindow):
             self.ui.statusbar.showMessage(u'* 数据库链接错误.')
             time.sleep(1)
             self.DatabaseDialog()
+        else:
+            Mainapp.getTaskList()
 
     def setHeaderMainList(self, header):
         self.ui.mainlist.header().setDefaultAlignment(QtCore.Qt.AlignHCenter)
@@ -147,16 +149,21 @@ class MainUI(QtGui.QMainWindow):
         self.list_with_task = task
         self.list_with_robot = robot
 
-    def updateListItem(self, state, taskid):
+    def updateTaskState(self, state, taskid):
         '''change task state'''
         if not self.list_with_task:
             return
         taskItem = self.taskList[taskid]['item']
         curState = Func._variantConv(taskItem.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
-        if not curState==state:
-            state = (state == Task_Flag_Runing and [self.task_state_run] or [self.task_state_wait])[0]
-            taskItem.setIcon(self.task_state_col, QtGui.QIcon(state))
-            QtGui.QTreeWidgetItem().setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(Task_Flag_Runing))
+        if curState==state:
+            return
+        taskItem.setIcon(self.task_state_col, QtGui.QIcon('res/loading.gif'))
+        stateIcon = {Task_Flag_Waiting: self.task_state_wait, Task_Flag_Runing: self.task_state_run, Task_Flag_Stoped: self.task_state_stop}
+        taskItem.setIcon(self.task_state_col, QtGui.QIcon(stateIcon[state]))
+        QtGui.QTreeWidgetItem().setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))
+
+        if state==Task_Flag_Stoped:
+            self.threadStop(taskid)
 
     def updateNextRunTime(self, timestr, taskid):
         if not self.list_with_task:
@@ -170,8 +177,7 @@ class MainUI(QtGui.QMainWindow):
         t = RunTask(self.taskList[taskid]['taskinfo'], self)
         self.threadList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.updateNextRunTime)
-        self.connect(t, QtCore.SIGNAL("Activated"), self.updateListItem)
-        self.connect(t, QtCore.SIGNAL("Stoped"), self.threadStop)
+        self.connect(t, QtCore.SIGNAL("Activated"), self.updateTaskState)
         t.start()
 
     def threadStop(self, taskid=-1):
@@ -382,11 +388,9 @@ class RunTask(QtCore.QThread):
                     self.emit(QtCore.SIGNAL("Updated"), Func.fromTimestamp(nextruntime), taskid)
                 else:
                     state = Task_Flag_Stoped
-                    self.emit(QtCore.SIGNAL("Stoped"), taskid)
 
-            if not state==Task_Flag_Stoped:
-                self.emit(QtCore.SIGNAL("Activated"), state, taskid)
-                time.sleep(1)
+            self.emit(QtCore.SIGNAL("Activated"), state, taskid)
+            time.sleep(1)
 
 
 
@@ -410,7 +414,5 @@ if __name__ == "__main__":
     Mainapp.show()
     # init database connection
     Mainapp.iniDatabaseConn()
-    # get task list from database
-    Mainapp.getTaskList()
 
     sys.exit(app.exec_())
