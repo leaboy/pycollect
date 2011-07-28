@@ -10,16 +10,11 @@
 #
 # GNU Free Documentation License 1.3
 
-import re, sys, time, datetime, os
-import threading
-import httplib, urllib
-import hashlib
+import sys, time, datetime
 import simplejson
-from urlparse import urlparse,urljoin
 
 from iniFile import *
 from database import *
-from phpserialize import *
 from PyQt4 import QtCore, QtGui
 
 from ui_main import Ui_MainWindow
@@ -164,11 +159,15 @@ class MainUI(QtGui.QMainWindow):
 
         if state==Task_Flag_Stoped:
             self.threadStop(taskid)
+        elif state==Task_Flag_Runing:
+            print 'run:', taskid
 
-    def updateNextRunTime(self, timestr, taskid):
+    def updateNextRunTime(self, timestamp, taskid):
+        '''change nextruntime item'''
         if not self.list_with_task:
             return
-        self.taskList[taskid]['item'].setText(self.task_nextruntime_col, timestr)
+        _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (timestamp, taskid))
+        self.taskList[taskid]['item'].setText(self.task_nextruntime_col, Func.fromTimestamp(timestamp))
 
     def threadStart(self, taskid):
         '''create threads if it's not exist'''
@@ -384,8 +383,8 @@ class RunTask(QtCore.QThread):
             elif triggertime < currenttime:
                 if isloop == 1:
                     nextruntime = triggertime + loopperiod
-                    _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (nextruntime, taskid))
-                    self.emit(QtCore.SIGNAL("Updated"), Func.fromTimestamp(nextruntime), taskid)
+                    if nextruntime > currenttime:
+                        self.emit(QtCore.SIGNAL("Updated"), nextruntime, taskid)
                 else:
                     state = Task_Flag_Stoped
 
