@@ -39,6 +39,16 @@ class MainUI(QtGui.QMainWindow):
         self.task_state_run     = 'res/task_state_runing.png'
         self.task_state_stop    = 'res/task_state_stoped.png'
 
+        self.task_icon      = QtGui.QIcon('res/task.png')
+        self.task_add_icon  = QtGui.QIcon('res/task_add.png')
+
+        self.robot_icon      = QtGui.QIcon('res/robot.png')
+        self.robot_add_icon      = QtGui.QIcon('res/robot_add.png')
+
+        self.common_list_icon    = QtGui.QIcon('res/common_list.png')
+        self.common_edit_icon   = QtGui.QIcon('res/common_edit.png')
+        self.common_del_icon    = QtGui.QIcon('res/common_delete.png')
+
         self.task_id_col = self.task_state_col = self.task_nextruntime_col = 0
 
         # task list: {taskid: {item: QTreeWidgetItem, taskinfo: taskinfo list}}
@@ -48,9 +58,13 @@ class MainUI(QtGui.QMainWindow):
 
         # menu signal
         self.ui.taskadd.triggered.connect(self.TaskDialog)
+        self.ui.taskadd.setIcon(self.task_add_icon)
         self.ui.m_tasklist.triggered.connect(self.getTaskList)
+        self.ui.m_tasklist.setIcon(self.common_list_icon)
         self.ui.robotadd.triggered.connect(self.RobotDialog)
+        self.ui.robotadd.setIcon(self.robot_add_icon)
         self.ui.m_robotlist.triggered.connect(self.getRobotList)
+        self.ui.m_robotlist.setIcon(self.common_list_icon)
         self.ui.mquit.triggered.connect(QtGui.qApp.quit)
 
         self.ui.database.triggered.connect(self.DatabaseDialog)
@@ -101,41 +115,13 @@ class MainUI(QtGui.QMainWindow):
         self.ui.mainlist.resizeColumnToContents(0)
         self.ui.mainlist.clear()
 
-    def taskMenu(self, item):
-        '''taskitem menu'''
-        self.ItemMenu = QtGui.QMenu(self)
-        self.taskEdit = QtGui.QAction(u"修改任务", self)
-        self.taskDelete = QtGui.QAction(u"删除任务", self)
-        self.taskStart = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
-        self.taskStop = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
-
-        self.ItemMenu.addAction(self.taskEdit)
-        self.ItemMenu.addAction(self.taskDelete)
-        self.ItemMenu.addSeparator()
-        self.ItemMenu.addAction(self.taskStart)
-        self.ItemMenu.addAction(self.taskStop)
-
-        self.ItemMenu.exec_(QtGui.QCursor.pos())
-        #event = QtGui.QApplication.mouseButtons() #QtCore.Qt.RightButton
-        #print QtGui.QMouseEvent().buttons()
-        #print QtGui.QMouseEvent()
-
-    def manualStart(self):
-        '''executed task Immediately'''
-        print 'manualStart'
-        taskid = Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
-        self.updateTaskState(Task_Flag_Runing, taskid)
-        if not self.threadList.has_key(taskid):
-            self.runThread(taskid)
-
-    def manualStop(self):
-        '''stopped task Immediately'''
-        print 'manualStop'
-
     def getTaskList(self):
         self.updateMainListFlag(True, False)
+        self.setTaskMenu()
+
         if _G['conn']==None:
             return
+
         itemList = []
         self.setHeaderMainList([u'任务名称', u'采集器', u'循环', u'执行时间', u'下次执行时间', u'状态'])
         self.task_state_col = self.ui.mainlist.columnCount()-1
@@ -150,6 +136,7 @@ class MainUI(QtGui.QMainWindow):
 
             taskItem = QtGui.QTreeWidgetItem([i['taskname'], i['name'], isloop, runtime, nextruntime])
             taskItem.setIcon(self.task_state_col, QtGui.QIcon(self.task_state_wait))
+            taskItem.setIcon(self.task_id_col, self.task_icon)
             taskItem.setData(self.task_id_col, QtCore.Qt.UserRole, QtCore.QVariant(taskid))
             taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(Task_Flag_Waiting))
             taskItem.setTextAlignment(2, QtCore.Qt.AlignHCenter)
@@ -162,12 +149,42 @@ class MainUI(QtGui.QMainWindow):
             self.taskList[taskid] = {'item': taskItem, 'taskinfo': i}
             self.runThread(taskid)
 
-        self.ui.mainlist.connect(self.ui.mainlist, QtCore.SIGNAL("itemPressed(QTreeWidgetItem*, int)"), self.taskMenu)
+    def setTaskMenu(self):
+        '''taskitem menu'''
+        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加任务", self, triggered=self.TaskDialog, shortcut="Ctrl+N")
+        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改任务", self)
+        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除任务", self)
+        self.separator  = QtGui.QAction(self)
+        self.separator.setSeparator(True)
+        self.taskStart  = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
+        self.taskStop   = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
+
+        self.ui.mainlist.addAction(self.taskAdd)
+        self.ui.mainlist.addAction(self.taskEdit)
+        self.ui.mainlist.addAction(self.taskDelete)
+        self.ui.mainlist.addAction(self.separator)
+        self.ui.mainlist.addAction(self.taskStart)
+        self.ui.mainlist.addAction(self.taskStop)
+
+    def manualStart(self):
+        '''executed task Immediately'''
+        print 'manualStart'
+        taskid = Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
+        self.updateTaskState(Task_Flag_Runing, taskid)
+        if not self.threadList.has_key(taskid):
+            self.runThread(taskid)
+
+    def manualStop(self):
+        '''stopped task Immediately'''
+        print 'manualStop'
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
+
         if _G['conn']==None:
             return
+
         self.setHeaderMainList([u'采集器名称', u'编码', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式', u'文件后缀'])
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
         for i in robotList:
