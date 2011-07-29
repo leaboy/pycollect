@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Robot.ui'
 #
-# Created: Thu Jul 21 15:05:10 2011
+# Created: Fri Jul 29 11:02:30 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -309,14 +309,14 @@ class Ui_RobotDialog(object):
         self.reverseorder.setSizePolicy(sizePolicy)
         self.reverseorder.setObjectName("reverseorder")
         self.gridLayout_9.addWidget(self.reverseorder, 0, 0, 1, 1)
-        self.onlylinks = QtGui.QCheckBox(self.groupBox_9)
+        self.linkmode = QtGui.QCheckBox(self.groupBox_9)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.onlylinks.sizePolicy().hasHeightForWidth())
-        self.onlylinks.setSizePolicy(sizePolicy)
-        self.onlylinks.setObjectName("onlylinks")
-        self.gridLayout_9.addWidget(self.onlylinks, 0, 1, 1, 1)
+        sizePolicy.setHeightForWidth(self.linkmode.sizePolicy().hasHeightForWidth())
+        self.linkmode.setSizePolicy(sizePolicy)
+        self.linkmode.setObjectName("linkmode")
+        self.gridLayout_9.addWidget(self.linkmode, 0, 1, 1, 1)
         self.downloadmode = QtGui.QCheckBox(self.groupBox_9)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -434,8 +434,8 @@ class Ui_RobotDialog(object):
         self.label_39.setText(QtGui.QApplication.translate("RobotDialog", "文章链接URL识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[url]、[title]</font>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_40.setText(QtGui.QApplication.translate("RobotDialog", "文章标题识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[title]</font>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_41.setText(QtGui.QApplication.translate("RobotDialog", "文章内容识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[message]</font>", None, QtGui.QApplication.UnicodeUTF8))
-        self.reverseorder.setText(QtGui.QApplication.translate("RobotDialog", "倒序采集", None, QtGui.QApplication.UnicodeUTF8))
-        self.onlylinks.setText(QtGui.QApplication.translate("RobotDialog", "不采集内容", None, QtGui.QApplication.UnicodeUTF8))
+        self.reverseorder.setText(QtGui.QApplication.translate("RobotDialog", "倒序模式", None, QtGui.QApplication.UnicodeUTF8))
+        self.linkmode.setText(QtGui.QApplication.translate("RobotDialog", "列表模式", None, QtGui.QApplication.UnicodeUTF8))
         self.downloadmode.setText(QtGui.QApplication.translate("RobotDialog", "下载模式", None, QtGui.QApplication.UnicodeUTF8))
         self.extension.setToolTip(QtGui.QApplication.translate("RobotDialog", "文件后缀，仅下载模式有效", None, QtGui.QApplication.UnicodeUTF8))
         self.label_42.setText(QtGui.QApplication.translate("RobotDialog", "修改文件后缀", None, QtGui.QApplication.UnicodeUTF8))

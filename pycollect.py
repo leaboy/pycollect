@@ -11,6 +11,7 @@
 # GNU Free Documentation License 1.3
 
 import sys, time, datetime
+import hashlib
 import simplejson
 
 from iniFile import *
@@ -32,8 +33,8 @@ class MainUI(QtGui.QMainWindow):
 
         self.yesstr = u'√'
         self.nostr  = u'-'
-        self.list_with_task     = False
-        self.list_with_robot    = False
+        self.task_list     = False
+        self.task_robot    = False
         self.task_state_wait    = 'res/task_state_waiting.png'
         self.task_state_run     = 'res/task_state_runing.png'
         self.task_state_stop    = 'res/task_state_stoped.png'
@@ -100,6 +101,37 @@ class MainUI(QtGui.QMainWindow):
         self.ui.mainlist.resizeColumnToContents(0)
         self.ui.mainlist.clear()
 
+    def taskMenu(self, item):
+        '''taskitem menu'''
+        self.ItemMenu = QtGui.QMenu(self)
+        self.taskEdit = QtGui.QAction(u"修改任务", self)
+        self.taskDelete = QtGui.QAction(u"删除任务", self)
+        self.taskStart = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
+        self.taskStop = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
+
+        self.ItemMenu.addAction(self.taskEdit)
+        self.ItemMenu.addAction(self.taskDelete)
+        self.ItemMenu.addSeparator()
+        self.ItemMenu.addAction(self.taskStart)
+        self.ItemMenu.addAction(self.taskStop)
+
+        self.ItemMenu.exec_(QtGui.QCursor.pos())
+        #event = QtGui.QApplication.mouseButtons() #QtCore.Qt.RightButton
+        #print QtGui.QMouseEvent().buttons()
+        #print QtGui.QMouseEvent()
+
+    def manualStart(self):
+        '''executed task Immediately'''
+        print 'manualStart'
+        taskid = Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
+        self.updateTaskState(Task_Flag_Runing, taskid)
+        if not self.threadList.has_key(taskid):
+            self.runThread(taskid)
+
+    def manualStop(self):
+        '''stopped task Immediately'''
+        print 'manualStop'
+
     def getTaskList(self):
         self.updateMainListFlag(True, False)
         if _G['conn']==None:
@@ -108,7 +140,8 @@ class MainUI(QtGui.QMainWindow):
         self.setHeaderMainList([u'任务名称', u'采集器', u'循环', u'执行时间', u'下次执行时间', u'状态'])
         self.task_state_col = self.ui.mainlist.columnCount()-1
         self.task_nextruntime_col = self.task_state_col-1
-        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.name FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid ORDER BY t.taskid")
+
+        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.* FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid ORDER BY t.taskid")
         for i in taskList:
             taskid  = i['taskid']
             isloop  = (i['loop']==1 and [self.yesstr] or [self.nostr])[0]
@@ -122,8 +155,14 @@ class MainUI(QtGui.QMainWindow):
             taskItem.setTextAlignment(2, QtCore.Qt.AlignHCenter)
             self.ui.mainlist.addTopLevelItem(taskItem)
 
+            # check spider
+            self.initCrawlSpider(taskid, i)
+
+            # start task thread
             self.taskList[taskid] = {'item': taskItem, 'taskinfo': i}
-            self.threadStart(taskid)
+            self.runThread(taskid)
+
+        self.ui.mainlist.connect(self.ui.mainlist, QtCore.SIGNAL("itemPressed(QTreeWidgetItem*, int)"), self.taskMenu)
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
@@ -135,41 +174,41 @@ class MainUI(QtGui.QMainWindow):
             i['speed']          = str(i['speed'])
             i['threads']        = str(i['threads'])
             i['reverseorder']   = (i['reverseorder'] and [self.yesstr] or [self.nostr])[0]
-            i['onlylinks']      = (i['onlylinks'] and [self.yesstr] or [self.nostr])[0]
+            i['linkmode']       = (i['linkmode'] and [self.yesstr] or [self.nostr])[0]
             i['downloadmode']   = (i['downloadmode'] and [self.yesstr] or [self.nostr])[0]
-            robotItem = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['onlylinks'], i['downloadmode'], i['extension']])
+            robotItem = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['linkmode'], i['downloadmode'], i['extension']])
             self.ui.mainlist.addTopLevelItem(robotItem)
 
     def updateMainListFlag(self, task=True, robot=False):
-        self.list_with_task = task
-        self.list_with_robot = robot
+        self.task_list = task
+        self.task_robot = robot
 
     def updateTaskState(self, state, taskid):
         '''change task state'''
-        if not self.list_with_task:
+        if not self.task_list:
             return
         taskItem = self.taskList[taskid]['item']
         curState = Func._variantConv(taskItem.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
         if curState==state:
             return
-        taskItem.setIcon(self.task_state_col, QtGui.QIcon('res/loading.gif'))
+        #taskItem.setIcon(self.task_state_col, QtGui.QIcon('res/loading.gif'))
         stateIcon = {Task_Flag_Waiting: self.task_state_wait, Task_Flag_Runing: self.task_state_run, Task_Flag_Stoped: self.task_state_stop}
         taskItem.setIcon(self.task_state_col, QtGui.QIcon(stateIcon[state]))
-        QtGui.QTreeWidgetItem().setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))
+        taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))
 
         if state==Task_Flag_Stoped:
-            self.threadStop(taskid)
+            self.stopThread(taskid)
         elif state==Task_Flag_Runing:
-            print 'run:', taskid
+            self.runCrawl(taskid)
 
     def updateNextRunTime(self, timestamp, taskid):
         '''change nextruntime item'''
-        if not self.list_with_task:
+        if not self.task_list:
             return
         _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (timestamp, taskid))
         self.taskList[taskid]['item'].setText(self.task_nextruntime_col, Func.fromTimestamp(timestamp))
 
-    def threadStart(self, taskid):
+    def runThread(self, taskid):
         '''create threads if it's not exist'''
         if self.threadList.has_key(taskid):
             return
@@ -179,7 +218,7 @@ class MainUI(QtGui.QMainWindow):
         self.connect(t, QtCore.SIGNAL("Activated"), self.updateTaskState)
         t.start()
 
-    def threadStop(self, taskid=-1):
+    def stopThread(self, taskid=-1):
         '''stop threads by taskid/all'''
         if not len(self.threadList)>0 or (not self.threadList.has_key(taskid) and taskid!=-1):
             return
@@ -192,6 +231,45 @@ class MainUI(QtGui.QMainWindow):
 
             self.taskList[taskid]['item'].setIcon(self.task_state_col, QtGui.QIcon(self.task_state_stop))
             del self.threadList[taskid]
+
+    def getCrawlSpider(self, taskid):
+        spider_name = hashlib.md5(str(taskid)).hexdigest()
+        spider_file = '%s/%s' % (Spider_Path, spider_name)
+        return spider_name, spider_file
+
+    def initCrawlSpider(self, taskid, taskinfo):
+        '''creat task spider if not exist'''
+        if not os.path.exists(Spider_Path):
+            os.makedirs(Spider_Path)
+        spider_name, spider_file = self.getCrawlSpider(taskid)
+        spider_file = '%s.py' % spider_file
+        if not os.path.isfile(spider_file):
+            fp = open(spider_file, 'w')
+            fp.write('# spider_name: %s\n class MySpider():\n    print "%s"' % (spider_name, spider_name))
+            fp.close()
+
+    def runCrawl(self, taskid):
+        '''run scrapy crawl'''
+        spider_name, spider_file = self.getCrawlSpider(taskid)
+        locker_file = '%s.lock' % spider_file
+        fp = open(locker_file, 'w')
+        fp.close()
+        print 'Crawl: %d, Spider: %s' % (taskid, spider_name)
+        '''
+        path = self.spider_path
+        spider_name, spider_file = self.getCrawlSpider(taskid)
+        spider_class = getattr(__import__('%s.%s' % (path, spider_name)), "MySpider")
+        spider = spider_class()
+
+        try:
+            #spider_class = load_class('%s.%s.CrawlSpider' % (path, spider_name))
+            spider_class = getattr(__import__('%s.%s' % (path, spider_name)), "MySpider")
+            spider = spider_class()
+        except:
+            spider = None
+        '''
+    def stopCrawl():
+        pass
 
 
 class TaskUI(QtGui.QDialog):
@@ -267,14 +345,14 @@ class RobotUI(QtGui.QDialog):
         subjectrule     = Func.toStr(self.ui.subjectrule.toPlainText())
         messagerule     = Func.toStr(self.ui.messagerule.toPlainText())
         reverseorder    = (self.ui.reverseorder.isChecked() and [1] or [0])[0]
-        onlylinks       = (self.ui.onlylinks.isChecked() and [1] or [0])[0]
+        linkmode        = (self.ui.linkmode.isChecked() and [1] or [0])[0]
         downloadmode    = (self.ui.downloadmode.isChecked() and [1] or [0])[0]
         extension       = Func.toStr(self.ui.extension.text())
         importSQL       = Func.toStr(self.ui.importSQL.toPlainText())
         # serialize listurl to json
         listurl = self.serializeListUrl(autourl, manualurl)
         if robotname and (autourl or manualurl):
-            _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, encode=encode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, onlylinks=onlylinks, downloadmode=downloadmode, extension=extension, importSQL=importSQL)
+            _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, encode=encode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, linkmode=linkmode, downloadmode=downloadmode, extension=extension, importSQL=importSQL)
             self.accept()
 
 
@@ -354,10 +432,11 @@ class Func:
 
 
 class RunTask(QtCore.QThread):
-    def __init__(self, taskinfo, parent=None):
+    def __init__(self, taskinfo, parent):
         QtCore.QThread.__init__(self, parent)
         self.taskinfo = taskinfo
         self.stoped = False
+        self.parent = parent
 
     def stop(self):
         self.stoped = True
@@ -388,6 +467,13 @@ class RunTask(QtCore.QThread):
                 else:
                     state = Task_Flag_Stoped
 
+            # is running
+            spider_name, spider_file = self.parent.getCrawlSpider(taskid)
+            locker_file = '%s.lock' % spider_file
+
+            if os.path.isfile(locker_file):
+                state = Task_Flag_Runing
+
             self.emit(QtCore.SIGNAL("Activated"), state, taskid)
             time.sleep(1)
 
@@ -402,6 +488,9 @@ if __name__ == "__main__":
     Task_Flag_Waiting   = 0
     Task_Flag_Runing    = 1
     Task_Flag_Stoped    = 2
+
+    # spider
+    Spider_Path = 'spiders'
 
     # helper functions
     Func = Func()

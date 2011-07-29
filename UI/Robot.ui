@@ -577,12 +577,12 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>倒序采集</string>
+                 <string>倒序模式</string>
                 </property>
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QCheckBox" name="onlylinks">
+               <widget class="QCheckBox" name="linkmode">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -590,7 +590,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>不采集内容</string>
+                 <string>列表模式</string>
                 </property>
                </widget>
               </item>
