@@ -6,7 +6,7 @@
 # Created: 2011-Jul-12 ‏‎11:01:24
 #      By: leaboy.w
 #   Email: leaboy.w@gmail.com
-# Package: ui files, phpserialize
+# Package: ui files, simplejson
 #
 # GNU Free Documentation License 1.3
 
