@@ -3,7 +3,7 @@
 
 # The Main class for crawl.
 #
-# Created: 2011-Jul-12 ‏‎11:01:24
+# Created: 2011-Aug-01 11:28:20
 #      By: leaboy.w
 #   Email: leaboy.w@gmail.com
 #     Lib: Scrapy 0.12.0
@@ -12,13 +12,61 @@
 
 import sys, os
 
-class Crawl:
-    def __init__ (self):
-        os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'Test.settings')
-        sys.path.append("./Test")
+from scrapy.conf import settings
+from scrapy import signals
+from scrapy.crawler import CrawlerProcess
+from scrapy.item import Item, Field
+from scrapy.xlib.pydispatch import dispatcher
 
-        from scrapy.cmdline import execute
-        execute(['crawl.py','crawl','sse.com.cn'])
+class MyItems(Item):
+    """necessary Item"""
+    title = Field()
+    link = Field()
+    content = Field()
 
-if __name__ == "__main__":
-    Crawl()
+
+from scrapy.selector import HtmlXPathSelector
+from scrapy.spider import BaseSpider
+from scrapy.contrib.loader import XPathItemLoader
+
+class MySpider(BaseSpider):
+    """spider"""
+    name = 'spider_name'
+    start_urls = ['http://stackoverflow.com/']
+    list_xpath = '//div[@id="content"]//div[contains(@class, "question-summary")]'
+
+    def parse(self, response):
+        hxs = HtmlXPathSelector(response)
+
+        for qxs in hxs.select(self.list_xpath):
+            loader = XPathItemLoader(MyItems(), selector=qxs)
+            loader.add_xpath('title', './/h3/a/text()')
+            loader.add_xpath('link', './/h3/a/@title')
+            loader.add_xpath('content', './/a[@rel="tag"]/text()')
+
+            yield loader.load_item()
+
+
+class MyCrawl:
+    def item_passed(self, item):
+        print "Got:", item
+
+    def stop(self):
+        pass
+
+    def run(self):
+        """Install item signal and run scrapy"""
+        dispatcher.connect(self.item_passed, signals.item_passed)
+
+        settings.overrides['LOG_ENABLED'] = False
+
+        crawler = CrawlerProcess(settings)
+        crawler.install()
+        crawler.configure()
+
+        spider = MySpider()
+        crawler.queue.append_spider(spider)
+
+        print "STARTING ENGINE"
+        crawler.start()
+        print "ENGINE STOPPED"

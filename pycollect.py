@@ -3,7 +3,7 @@
 
 # The Main App for Data collector.
 #
-# Created: 2011-Jul-12 ‏‎11:01:24
+# Created: 2011-Jul-11 22:28:20
 #      By: leaboy.w
 #   Email: leaboy.w@gmail.com
 # Package: ui files, simplejson
@@ -38,6 +38,7 @@ class MainUI(QtGui.QMainWindow):
         self.task_state_wait    = 'res/task_state_waiting.png'
         self.task_state_run     = 'res/task_state_runing.png'
         self.task_state_stop    = 'res/task_state_stoped.png'
+        self.task_state_failed  = 'res/task_state_stoped.png'
 
         self.task_icon      = QtGui.QIcon('res/task.png')
         self.task_add_icon  = QtGui.QIcon('res/task_add.png')
@@ -55,6 +56,8 @@ class MainUI(QtGui.QMainWindow):
         self.taskList = {}
         # thread list: {taskid: threadObject}
         self.threadList = {}
+        # crawl list: {taskid: crawlObject}
+        self.crawlList = {}
 
         # menu signal
         self.ui.taskadd.triggered.connect(self.TaskDialog)
@@ -127,6 +130,9 @@ class MainUI(QtGui.QMainWindow):
         self.task_state_col = self.ui.mainlist.columnCount()-1
         self.task_nextruntime_col = self.task_state_col-1
 
+        # init spider
+        self.initCrawlSpider()
+
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.* FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid ORDER BY t.taskid")
         for i in taskList:
             taskid  = i['taskid']
@@ -143,7 +149,7 @@ class MainUI(QtGui.QMainWindow):
             self.ui.mainlist.addTopLevelItem(taskItem)
 
             # check spider
-            self.initCrawlSpider(taskid, i)
+            self.createCrawlSpider(taskid, i)
 
             # start task thread
             self.taskList[taskid] = {'item': taskItem, 'taskinfo': i}
@@ -235,12 +241,12 @@ class MainUI(QtGui.QMainWindow):
         self.connect(t, QtCore.SIGNAL("Activated"), self.updateTaskState)
         t.start()
 
-    def stopThread(self, taskid=-1):
+    def stopThread(self, taskid):
         '''stop threads by taskid/all'''
         if not len(self.threadList)>0 or (not self.threadList.has_key(taskid) and taskid!=-1):
             return
         if taskid == -1:
-            for i in self.threadList: i[1].stop()
+            for t in self.threadList: t.stop()
             self.threadList.clear()
         else:
             t = self.threadList[taskid]
@@ -254,39 +260,55 @@ class MainUI(QtGui.QMainWindow):
         spider_file = '%s/%s' % (Spider_Path, spider_name)
         return spider_name, spider_file
 
-    def initCrawlSpider(self, taskid, taskinfo):
+    def initCrawlSpider(self):
         '''creat task spider if not exist'''
         if not os.path.exists(Spider_Path):
             os.makedirs(Spider_Path)
+        init_file = '%s/__init__.py' % Spider_Path
+        if not os.path.isfile(init_file):
+            fp = open(init_file, 'w')
+            fp.close()
+
+    def createCrawlSpider(self, taskid, taskinfo):
         spider_name, spider_file = self.getCrawlSpider(taskid)
         spider_file = '%s.py' % spider_file
         if not os.path.isfile(spider_file):
             fp = open(spider_file, 'w')
-            fp.write('# spider_name: %s\n class MySpider():\n    print "%s"' % (spider_name, spider_name))
+            fp.write('# spider_name: %s\nclass MySpider():\n    def test(self, name):\n        print name' % spider_name)
             fp.close()
 
     def runCrawl(self, taskid):
         '''run scrapy crawl'''
+        if self.crawlList.has_key(taskid):
+            return
         spider_name, spider_file = self.getCrawlSpider(taskid)
         locker_file = '%s.lock' % spider_file
         fp = open(locker_file, 'w')
         fp.close()
+
+        self.crawlList[taskid] = spider_name
         print 'Crawl: %d, Spider: %s' % (taskid, spider_name)
-        '''
-        path = self.spider_path
-        spider_name, spider_file = self.getCrawlSpider(taskid)
-        spider_class = getattr(__import__('%s.%s' % (path, spider_name)), "MySpider")
-        spider = spider_class()
 
         try:
-            #spider_class = load_class('%s.%s.CrawlSpider' % (path, spider_name))
-            spider_class = getattr(__import__('%s.%s' % (path, spider_name)), "MySpider")
+            spider_class = getattr(__import__('%s.%s' % (Spider_Path, spider_name), globals(), locals(), ['*'], -1), 'MySpider')
             spider = spider_class()
         except:
             spider = None
-        '''
-    def stopCrawl():
-        pass
+
+        if spider==None:
+            self.stopThread(taskid)
+            self.stopCrawl(taskid)
+
+    def stopCrawl(self, taskid):
+        if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
+            return
+        if taskid == -1:
+            for x in Func.searchFile('*.lock'): os.remove(x)
+            self.crawlList.clear()
+        else:
+            os.remove('%s.lock' % self.crawlList[taskid])
+            self.taskList[taskid]['item'].setIcon(self.task_state_col, QtGui.QIcon(self.task_state_failed))
+            del self.crawlList[taskid]
 
 
 class TaskUI(QtGui.QDialog):
@@ -409,6 +431,8 @@ class DatabaseUI(QtGui.QDialog):
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
 
 
+import fnmatch
+
 class Func:
     def toStr(self, strr):
         if type(strr)==QtCore.QString:
@@ -446,6 +470,11 @@ class Func:
         elif dst=='string':
             res = variant.toString()
         return res
+
+    def searchFile(self, pattern, root=os.curdir):
+        for path, dirs, files in os.walk(os.path.abspath(root)):
+            for filename in fnmatch.filter(files, pattern):
+                yield os.path.join(path, filename)
 
 
 class RunTask(QtCore.QThread):
@@ -505,6 +534,7 @@ if __name__ == "__main__":
     Task_Flag_Waiting   = 0
     Task_Flag_Runing    = 1
     Task_Flag_Stoped    = 2
+    Task_Flag_Failed    = 3
 
     # spider
     Spider_Path = 'spiders'
