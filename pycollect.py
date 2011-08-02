@@ -10,14 +10,15 @@
 #
 # GNU Free Documentation License 1.3
 
-import sys, time, datetime
+import os, sys, time
 import hashlib
 import simplejson
 
-from iniFile import *
-from database import *
-from PyQt4 import QtCore, QtGui
+from iniFile import IniFile
+from common import Func
+from database import Connection
 
+from PyQt4 import QtCore, QtGui
 from ui_main import Ui_MainWindow
 from ui_robot import Ui_RobotDialog
 from ui_task import Ui_TaskDialog
@@ -175,7 +176,7 @@ class MainUI(QtGui.QMainWindow):
 
     def manualStart(self):
         '''executed task Immediately'''
-        print 'manualStart'
+        item = self.ui.mainlist.currentItem()
         taskid = Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
         self.updateTaskState(Task_Flag_Runing, taskid)
         if not self.threadList.has_key(taskid):
@@ -270,11 +271,38 @@ class MainUI(QtGui.QMainWindow):
             fp.close()
 
     def createCrawlSpider(self, taskid, taskinfo):
+        task_listurl    = taskinfo['listurl']
+        task_pagestart  = taskinfo['listpagestart']
+        task_pageend    = taskinfo['listpageend']
+        task_wildcardlen= taskinfo['wildcardlen']
+        task_stockdata  = taskinfo['stockdata']
+        task_listrule   = taskinfo['subjecturlrule']
+        task_titlerule  = taskinfo['subjectrule']
+        task_linkrule   = taskinfo['subjecturllinkrule']
+        task_contentrule= taskinfo['messagerule']
+
         spider_name, spider_file = self.getCrawlSpider(taskid)
         spider_file = '%s.py' % spider_file
+
         if not os.path.isfile(spider_file):
+            task_listurl = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
+            task_listurl_str = simplejson.dumps(task_listurl)
+            fp = open('spider', 'r')
+            spider_tmp = fp.read()
+            fp.close()
+            # xpath
+            task_titlerule  = (task_titlerule=='' and [''] or ['loader.add_xpath(\'title\', \'%s\')' % task_titlerule])[0]
+            task_linkrule   = (task_linkrule=='' and [''] or ['loader.add_xpath(\'link\', \'%s\')' % task_linkrule])[0]
+            task_contentrule= (task_contentrule=='' and [''] or ['loader.add_xpath(\'content\', \'%s\')' % task_contentrule])[0]
+            task_xpath = "%s\n            %s\n            %s" % (task_titlerule, task_linkrule, task_contentrule)
+            # replace
+            spider_tmp = spider_tmp.replace('#spider_name#', spider_name)
+            spider_tmp = spider_tmp.replace('#list_urls#', task_listurl_str)
+            spider_tmp = spider_tmp.replace('#rule_list#', task_listrule)
+            spider_tmp = spider_tmp.replace('#xpath#', task_xpath)
+            spider_tmp = Func.iConv(spider_tmp)
             fp = open(spider_file, 'w')
-            fp.write('# spider_name: %s\nclass MySpider():\n    def test(self, name):\n        print name' % spider_name)
+            fp.write(spider_tmp)
             fp.close()
 
     def runCrawl(self, taskid):
@@ -285,6 +313,8 @@ class MainUI(QtGui.QMainWindow):
         locker_file = '%s.lock' % spider_file
         fp = open(locker_file, 'w')
         fp.close()
+
+        from crawl import MyCrawl
 
         self.crawlList[taskid] = spider_name
         print 'Crawl: %d, Spider: %s' % (taskid, spider_name)
@@ -298,6 +328,8 @@ class MainUI(QtGui.QMainWindow):
         if spider==None:
             self.stopThread(taskid)
             self.stopCrawl(taskid)
+        else:
+            MyCrawl(spider).run()
 
     def stopCrawl(self, taskid):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
@@ -363,11 +395,6 @@ class RobotUI(QtGui.QDialog):
 
         self.connect(self.ui.robotSave, QtCore.SIGNAL("clicked()"), self.verify)
 
-    def serializeListUrl(self, autourl, manualurl):
-        manualurlList = manualurl.splitlines()
-        listurl = {'auto': autourl, 'manual': manualurl}
-        return simplejson.dumps(listurl)
-
     def verify(self):
         robotname       = Func.toStr(self.ui.robotname.text())
         speed           = self.ui.speed.value()
@@ -389,7 +416,7 @@ class RobotUI(QtGui.QDialog):
         extension       = Func.toStr(self.ui.extension.text())
         importSQL       = Func.toStr(self.ui.importSQL.toPlainText())
         # serialize listurl to json
-        listurl = self.serializeListUrl(autourl, manualurl)
+        listurl = Func.serializeListUrl(autourl, manualurl)
         if robotname and (autourl or manualurl):
             _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, encode=encode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, linkmode=linkmode, downloadmode=downloadmode, extension=extension, importSQL=importSQL)
             self.accept()
@@ -429,52 +456,6 @@ class DatabaseUI(QtGui.QDialog):
                 self.accept()
         if conn==None or conn._db==None:
             self.ui.checklabel.setText(u'<font color="red">* 数据库链接错误.</font>')
-
-
-import fnmatch
-
-class Func:
-    def toStr(self, strr):
-        if type(strr)==QtCore.QString:
-            strr = strr.toLocal8Bit().data()
-            strr = self.iConv(strr)
-        return strr
-
-    def iConv(self, strr, srcencode='gb2312', dstencode='utf-8'):
-        if isinstance(strr, unicode):
-            return strr.encode(dstencode)
-        elif isinstance(strr, basestring):
-            return strr.decode(srcencode).encode(dstencode)
-        else:
-            return strr
-
-    def toTimestamp(self, val):
-        if type(val)==QtCore.QDateTime:
-            val = self.toStr(val.toString('yyyy-MM-dd hh:mm:ss'))
-            val = time.strptime(val, '%Y-%m-%d %H:%M:%S')
-            val = int(time.mktime(val))
-        return val
-
-    def fromTimestamp(self, val):
-        return str(datetime.datetime.fromtimestamp(int(val)))
-
-    def _variantConv(self, variant, dst):
-        """Helper method to cast a QVariant to an integer"""
-        res = None
-        if not variant.isValid():
-            return
-        if dst=='int':
-            integer, ok = variant.toInt()
-            if ok:
-                res = integer
-        elif dst=='string':
-            res = variant.toString()
-        return res
-
-    def searchFile(self, pattern, root=os.curdir):
-        for path, dirs, files in os.walk(os.path.abspath(root)):
-            for filename in fnmatch.filter(files, pattern):
-                yield os.path.join(path, filename)
 
 
 class RunTask(QtCore.QThread):
@@ -522,8 +503,6 @@ class RunTask(QtCore.QThread):
 
             self.emit(QtCore.SIGNAL("Activated"), state, taskid)
             time.sleep(1)
-
-
 
 
 if __name__ == "__main__":

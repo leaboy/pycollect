@@ -10,63 +10,55 @@
 #
 # GNU Free Documentation License 1.3
 
-import sys, os
-
 from scrapy.conf import settings
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
-from scrapy.item import Item, Field
 from scrapy.xlib.pydispatch import dispatcher
 
-class MyItems(Item):
-    """necessary Item"""
-    title = Field()
-    link = Field()
-    content = Field()
+def connect(signal):
+    """Handy signal hook decorator"""
+    def wrapper(func):
+        dispatcher.connect(func, signal)
+        return func
+    return wrapper
 
+class MyCrawl(object):
+    def __init__(self, spider):
+        self.spider = spider
+        self.crawler = None
 
-from scrapy.selector import HtmlXPathSelector
-from scrapy.spider import BaseSpider
-from scrapy.contrib.loader import XPathItemLoader
+    def spider_opened(self, spider):
+        print "opened spider %s" % spider.name
 
-class MySpider(BaseSpider):
-    """spider"""
-    name = 'spider_name'
-    start_urls = ['http://stackoverflow.com/']
-    list_xpath = '//div[@id="content"]//div[contains(@class, "question-summary")]'
+    def spider_closed(self, spider):
+        print "closed spider %s" % spider.name
 
-    def parse(self, response):
-        hxs = HtmlXPathSelector(response)
-
-        for qxs in hxs.select(self.list_xpath):
-            loader = XPathItemLoader(MyItems(), selector=qxs)
-            loader.add_xpath('title', './/h3/a/text()')
-            loader.add_xpath('link', './/h3/a/@title')
-            loader.add_xpath('content', './/a[@rel="tag"]/text()')
-
-            yield loader.load_item()
-
-
-class MyCrawl:
     def item_passed(self, item):
         print "Got:", item
 
     def stop(self):
-        pass
+        self.crawler.stop()
 
     def run(self):
         """Install item signal and run scrapy"""
-        dispatcher.connect(self.item_passed, signals.item_passed)
+        if self.spider==None:
+            self.stop()
+        @connect(signals.item_passed)
+        def catch_item(sender, item, **kwargs):
+            print "Got:", item
+
+        dispatcher.connect(self.spider_opened, signal=signals.spider_opened)
+        dispatcher.connect(self.spider_closed, signal=signals.spider_closed)
 
         settings.overrides['LOG_ENABLED'] = False
 
-        crawler = CrawlerProcess(settings)
-        crawler.install()
-        crawler.configure()
+        self.crawler = CrawlerProcess(settings)
+        self.crawler.install()
+        self.crawler.configure()
 
-        spider = MySpider()
-        crawler.queue.append_spider(spider)
+        self.crawler.queue.append_spider(self.spider)
 
         print "STARTING ENGINE"
-        crawler.start()
+        self.crawler.start()
         print "ENGINE STOPPED"
+        self.stop()

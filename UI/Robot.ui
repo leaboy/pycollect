@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>537</width>
-    <height>465</height>
+    <height>462</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -494,23 +494,7 @@
             <item row="0" column="0">
              <widget class="QLabel" name="label_37">
               <property name="text">
-               <string>采集页面编码</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="encode">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>45</width>
-                <height>16777215</height>
-               </size>
+               <string>匹配模式</string>
               </property>
              </widget>
             </item>
@@ -524,7 +508,7 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="1" column="1" colspan="4">
              <widget class="QPlainTextEdit" name="subjecturlrule"/>
             </item>
             <item row="2" column="0">
@@ -537,7 +521,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="2" column="1" colspan="4">
              <widget class="QPlainTextEdit" name="subjecturllinkrule"/>
             </item>
             <item row="3" column="0">
@@ -550,7 +534,7 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="3" column="1" colspan="4">
              <widget class="QPlainTextEdit" name="subjectrule"/>
             </item>
             <item row="4" column="0">
@@ -563,92 +547,8 @@
               </property>
              </widget>
             </item>
-            <item row="4" column="1">
+            <item row="4" column="1" colspan="4">
              <widget class="QPlainTextEdit" name="messagerule"/>
-            </item>
-            <item row="5" column="1">
-             <layout class="QGridLayout" name="gridLayout_9">
-              <item row="0" column="0">
-               <widget class="QCheckBox" name="reverseorder">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>倒序模式</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QCheckBox" name="linkmode">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>列表模式</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QCheckBox" name="downloadmode">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="text">
-                 <string>下载模式</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="3">
-               <widget class="QLineEdit" name="extension">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>45</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>文件后缀，仅下载模式有效</string>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="maxLength">
-                 <number>10</number>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="4">
-               <widget class="QLabel" name="label_42">
-                <property name="styleSheet">
-                 <string notr="true">color: rgb(172, 202, 239);</string>
-                </property>
-                <property name="text">
-                 <string>修改文件后缀</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
             </item>
             <item row="5" column="0">
              <widget class="QLabel" name="label_43">
@@ -656,6 +556,75 @@
                <string>其它设置</string>
               </property>
              </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QRadioButton" name="rule_mode_regex">
+              <property name="text">
+               <string>正则</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QRadioButton" name="rule_mode_xpath">
+              <property name="text">
+               <string>XPath</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QCheckBox" name="reverseorder">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>倒序模式</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="2">
+             <widget class="QCheckBox" name="linkmode">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>列表模式</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="3">
+             <widget class="QCheckBox" name="downloadmode">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>下载模式</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="4">
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
