@@ -39,7 +39,7 @@ class MainUI(QtGui.QMainWindow):
         self.task_state_wait    = 'res/task_state_waiting.png'
         self.task_state_run     = 'res/task_state_runing.png'
         self.task_state_stop    = 'res/task_state_stoped.png'
-        self.task_state_failed  = 'res/task_state_stoped.png'
+        self.task_state_failed  = 'res/task_state_failed.png'
 
         self.task_icon      = QtGui.QIcon('res/task.png')
         self.task_add_icon  = QtGui.QIcon('res/task_add.png')
@@ -174,17 +174,21 @@ class MainUI(QtGui.QMainWindow):
         self.ui.mainlist.addAction(self.taskStart)
         self.ui.mainlist.addAction(self.taskStop)
 
+    def getCurrentTask(self):
+        item = self.ui.mainlist.currentItem()
+        return item, Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
+
     def manualStart(self):
         '''executed task Immediately'''
-        item = self.ui.mainlist.currentItem()
-        taskid = Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
+        item, taskid = self.getCurrentTask()
         self.updateTaskState(Task_Flag_Runing, taskid)
         if not self.threadList.has_key(taskid):
             self.runThread(taskid)
 
     def manualStop(self):
         '''stopped task Immediately'''
-        print 'manualStop'
+        item, taskid = self.getCurrentTask()
+        self.stopCrawl(taskid)
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
@@ -192,7 +196,7 @@ class MainUI(QtGui.QMainWindow):
         if _G['conn']==None:
             return
 
-        self.setHeaderMainList([u'采集器名称', u'编码', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式', u'文件后缀'])
+        self.setHeaderMainList([u'采集器名称', u'匹配模式', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式'])
         robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
         for i in robotList:
             i['speed']          = str(i['speed'])
@@ -200,7 +204,7 @@ class MainUI(QtGui.QMainWindow):
             i['reverseorder']   = (i['reverseorder'] and [self.yesstr] or [self.nostr])[0]
             i['linkmode']       = (i['linkmode'] and [self.yesstr] or [self.nostr])[0]
             i['downloadmode']   = (i['downloadmode'] and [self.yesstr] or [self.nostr])[0]
-            robotItem = QtGui.QTreeWidgetItem([i['name'], i['encode'], i['speed'], i['threads'], i['reverseorder'], i['linkmode'], i['downloadmode'], i['extension']])
+            robotItem = QtGui.QTreeWidgetItem([i['name'], i['rulemode'], i['speed'], i['threads'], i['reverseorder'], i['linkmode'], i['downloadmode']])
             self.ui.mainlist.addTopLevelItem(robotItem)
 
     def updateMainListFlag(self, task=True, robot=False):
@@ -326,7 +330,6 @@ class MainUI(QtGui.QMainWindow):
             spider = None
 
         if spider==None:
-            self.stopThread(taskid)
             self.stopCrawl(taskid)
         else:
             MyCrawl(spider).run()
@@ -335,10 +338,11 @@ class MainUI(QtGui.QMainWindow):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
             return
         if taskid == -1:
-            for x in Func.searchFile('*.lock'): os.remove(x)
+            for x in Func.searchFile('*.lock', Spider_Path): os.remove(x)
             self.crawlList.clear()
         else:
-            os.remove('%s.lock' % self.crawlList[taskid])
+            spider_name, spider_file = self.getCrawlSpider(taskid)
+            os.remove('%s.lock' % spider_file)
             self.taskList[taskid]['item'].setIcon(self.task_state_col, QtGui.QIcon(self.task_state_failed))
             del self.crawlList[taskid]
 
@@ -357,7 +361,8 @@ class TaskUI(QtGui.QDialog):
         self.getRobotList()
 
         # init form field
-        self.taskname = self.robotid = self.isloop = self.loopperiod = self.runtime = None
+        self.taskname = None
+        self.robotid = self.isloop = self.loopperiod = self.runtime = 0
 
         self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.SelectRobot)
         self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
@@ -405,7 +410,9 @@ class RobotUI(QtGui.QDialog):
         wildcardlen     = self.ui.wildcardlen.value()
         manualurl       = Func.toStr(self.ui.manualurl.toPlainText())
         stockdata       = Func.toStr(self.ui.stockdata.text())
-        encode          = Func.toStr(self.ui.encode.text())
+        rule_mode_xpath = (self.ui.rule_mode_xpath.isChecked() and [1] or [0])[0]
+        rule_mode_regex = (self.ui.rule_mode_regex.isChecked() and [1] or [0])[0]
+        rulemode        = (rule_mode_xpath==1 and ['xpath'] or ['regex'])[0]
         subjecturlrule  = Func.toStr(self.ui.subjecturlrule.toPlainText())
         subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.toPlainText())
         subjectrule     = Func.toStr(self.ui.subjectrule.toPlainText())
@@ -413,12 +420,11 @@ class RobotUI(QtGui.QDialog):
         reverseorder    = (self.ui.reverseorder.isChecked() and [1] or [0])[0]
         linkmode        = (self.ui.linkmode.isChecked() and [1] or [0])[0]
         downloadmode    = (self.ui.downloadmode.isChecked() and [1] or [0])[0]
-        extension       = Func.toStr(self.ui.extension.text())
         importSQL       = Func.toStr(self.ui.importSQL.toPlainText())
         # serialize listurl to json
         listurl = Func.serializeListUrl(autourl, manualurl)
         if robotname and (autourl or manualurl):
-            _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, encode=encode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, linkmode=linkmode, downloadmode=downloadmode, extension=extension, importSQL=importSQL)
+            _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, rulemode=rulemode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, linkmode=linkmode, downloadmode=downloadmode, importSQL=importSQL)
             self.accept()
 
 

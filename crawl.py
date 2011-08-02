@@ -33,7 +33,7 @@ class MyCrawl(object):
     def spider_closed(self, spider):
         print "closed spider %s" % spider.name
 
-    def item_passed(self, item):
+    def item_passed(self, item, **kwargs):
         print "Got:", item
 
     def stop(self):
@@ -58,7 +58,5 @@ class MyCrawl(object):
 
         self.crawler.queue.append_spider(self.spider)
 
-        print "STARTING ENGINE"
         self.crawler.start()
-        print "ENGINE STOPPED"
         self.stop()

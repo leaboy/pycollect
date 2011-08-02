@@ -12,6 +12,8 @@
 import os, sys, time, datetime
 import simplejson
 
+from PyQt4 import QtCore
+
 class Func:
     def toStr(self, strr):
         if type(strr)==QtCore.QString:
@@ -62,7 +64,7 @@ class Func:
 
     def serializeListUrl(self, autourl, manualurl):
         manualurlList = manualurl.splitlines()
-        listurl = {'auto': autourl, 'manual': manualurl}
+        listurl = {'auto': autourl, 'manual': manualurlList}
         return simplejson.dumps(listurl)
 
     def getStartUrls(self, url, pagestart, pageend, wildcardlen, stockdata):
