@@ -348,6 +348,30 @@ class MainUI(QtGui.QMainWindow):
         if spider==None:
             self.stopCrawl(taskid)
         else:
+            from twisted.internet import reactor, task
+            from twisted.python import log
+            log.startLogging(sys.stdout)
+
+            from crawl import MyCrawl
+            crawler = MyCrawl(spider)
+            crawler.run()
+
+            '''
+            self.count = 0
+            def testReactor():
+                self.count += 1
+                print 'tick %d ...' % self.count
+
+            def doit():
+                task.LoopingCall(testReactor).start(1.0)
+                #reactor.callLater(15.0,reactor.stop)
+
+            #reactor.callWhenRunning(doit)
+            task.LoopingCall(testReactor).start(1.0)
+            reactor.run()
+            '''
+
+            '''
             from scrapy.conf import settings
             from scrapy.crawler import CrawlerProcess
             from twisted.internet import threads
@@ -359,17 +383,19 @@ class MainUI(QtGui.QMainWindow):
 
             from ui_thread import BlockingCrawlerFromThread
             blocking_crawler = BlockingCrawlerFromThread(crawler)
-            '''
+
             d = threads.deferToThread(start_python_console, {'crawler': blocking_crawler})
             d.addBoth(lambda x: crawler.stop())
             crawler.start()
             '''
 
+            '''
             from ui_thread import RunCrawl
             t = RunCrawl(self.taskList[taskid]['taskinfo'], blocking_crawler, spider, self)
             self.crawlList[taskid] = t
             self.connect(t, QtCore.SIGNAL("Updated"), self.updateTaskState)
             t.start()
+            '''
 
     def stopCrawl(self, taskid):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
@@ -388,11 +414,14 @@ if __name__ == "__main__":
     _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
 
+    import qt4reactor
     app = QtGui.QApplication(sys.argv)
-    Mainapp = MainUI()
+    qt4reactor.install()
 
     # show main window
+    Mainapp = MainUI()
     Mainapp.show()
+
     # init database connection
     Mainapp.iniDatabaseConn()
 
