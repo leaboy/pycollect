@@ -62,9 +62,9 @@ class MainUI(QtGui.QMainWindow):
 
         # task list: {taskid: {item: QTreeWidgetItem, taskinfo: taskinfo list}}
         self.taskList = {}
-        # thread list: {taskid: threadObject}
+        # task thread list: {taskid: threadObject}
         self.threadList = {}
-        # crawl list: {taskid: crawlObject}
+        # crawl thread list: {taskid: crawlObject}
         self.crawlList = {}
 
         # menu signal
@@ -320,6 +320,7 @@ class MainUI(QtGui.QMainWindow):
             task_contentrule= (task_contentrule=='' and [''] or ['loader.add_xpath(\'content\', \'%s\')' % task_contentrule])[0]
             task_xpath = "%s\n            %s\n            %s" % (task_titlerule, task_linkrule, task_contentrule)
             # replace
+            spider_tmp = spider_tmp.replace('#Date#', time.strftime('%Y-%m-%d %H:%M:%S'))
             spider_tmp = spider_tmp.replace('#spider_name#', spider_name)
             spider_tmp = spider_tmp.replace('#list_urls#', task_listurl_str)
             spider_tmp = spider_tmp.replace('#rule_list#', task_listrule)
@@ -338,11 +339,6 @@ class MainUI(QtGui.QMainWindow):
         fp = open(locker_file, 'w')
         fp.close()
 
-        from crawl import MyCrawl
-
-        self.crawlList[taskid] = spider_name
-        print 'Crawl: %d, Spider: %s' % (taskid, spider_name)
-
         try:
             spider_class = getattr(__import__('%s.%s' % (Spider_Path, spider_name), globals(), locals(), ['*'], -1), 'MySpider')
             spider = spider_class()
@@ -352,7 +348,28 @@ class MainUI(QtGui.QMainWindow):
         if spider==None:
             self.stopCrawl(taskid)
         else:
-            MyCrawl(spider).run()
+            from scrapy.conf import settings
+            from scrapy.crawler import CrawlerProcess
+            from twisted.internet import threads
+            from scrapy.utils.console import start_python_console
+            #settings.overrides['QUEUE_CLASS'] = 'scrapy.core.queue.KeepAliveExecutionQueue'
+            crawler = CrawlerProcess(settings)
+            crawler.install()
+            crawler.configure()
+
+            from ui_thread import BlockingCrawlerFromThread
+            blocking_crawler = BlockingCrawlerFromThread(crawler)
+            '''
+            d = threads.deferToThread(start_python_console, {'crawler': blocking_crawler})
+            d.addBoth(lambda x: crawler.stop())
+            crawler.start()
+            '''
+
+            from ui_thread import RunCrawl
+            t = RunCrawl(self.taskList[taskid]['taskinfo'], blocking_crawler, spider, self)
+            self.crawlList[taskid] = t
+            self.connect(t, QtCore.SIGNAL("Updated"), self.updateTaskState)
+            t.start()
 
     def stopCrawl(self, taskid):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
