@@ -3,10 +3,10 @@
 
 # The Main class for crawl.
 #
-# Created: 2011-Aug-01 11:28:20
-#      By: leaboy.w
-#   Email: leaboy.w@gmail.com
-#     Lib: Scrapy 0.12.0
+# $Author$
+# $Id$
+#
+# Lib: Scrapy 0.12.0
 #
 # GNU Free Documentation License 1.3
 

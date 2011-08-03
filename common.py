@@ -3,9 +3,8 @@
 
 # Common funtions and others.
 #
-# Created: 2011-Aug-02 ‏‎13:36:43
-#      By: leaboy.w
-#   Email: leaboy.w@gmail.com
+# $Author$
+# $Id$
 #
 # GNU Free Documentation License 1.3
 
@@ -127,3 +126,6 @@ class Func:
             return stockList
         stockList = (isinstance(stockList, list) and [stockList] or [stockList])[0]
         return stockList
+
+# instance helper functions
+Func = Func()
