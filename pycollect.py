@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #-*-coding:utf-8-*-
 
-# The Main App for Data collector.
+# Main App.
 #
 # $Author$
 # $Id$
@@ -20,6 +20,17 @@ from database import Connection
 
 from PyQt4 import QtCore, QtGui
 from ui_main import Ui_MainWindow
+
+
+# task flag
+Task_Flag_Waiting   = 0
+Task_Flag_Runing    = 1
+Task_Flag_Stoped    = 2
+Task_Flag_Failed    = 3
+
+# spider
+Spider_Path = 'spiders'
+
 
 class MainUI(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -248,6 +259,7 @@ class MainUI(QtGui.QMainWindow):
         '''create threads if it's not exist'''
         if self.threadList.has_key(taskid):
             return
+        from ui_thread import RunTask
         t = RunTask(self.taskList[taskid]['taskinfo'], self)
         self.threadList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.updateNextRunTime)
@@ -355,65 +367,9 @@ class MainUI(QtGui.QMainWindow):
             del self.crawlList[taskid]
 
 
-class RunTask(QtCore.QThread):
-    def __init__(self, taskinfo, parent):
-        QtCore.QThread.__init__(self, parent)
-        self.taskinfo = taskinfo
-        self.stoped = False
-        self.parent = parent
-
-    def stop(self):
-        self.stoped = True
-
-    def run(self):
-        taskid      = self.taskinfo['taskid']
-        robotid     = self.taskinfo['robotid']
-        isloop      = self.taskinfo['loop']
-        loopperiod  = self.taskinfo['loopperiod']
-        runtime     = self.taskinfo['runtime']
-        nextruntime = self.taskinfo['nextruntime']
-
-        while True:
-            if self.stoped:
-                return
-
-            state = Task_Flag_Waiting
-            triggertime = (nextruntime > 0 and [nextruntime] or [runtime])[0]
-            currenttime = time.mktime(time.localtime())
-
-            if triggertime == currenttime:
-                state = Task_Flag_Runing
-            elif triggertime < currenttime:
-                if isloop == 1:
-                    nextruntime = triggertime + loopperiod
-                    if nextruntime > currenttime:
-                        self.emit(QtCore.SIGNAL("Updated"), nextruntime, taskid)
-                else:
-                    state = Task_Flag_Stoped
-
-            # is running
-            spider_name, spider_file = self.parent.getCrawlSpider(taskid)
-            locker_file = '%s.lock' % spider_file
-
-            if os.path.isfile(locker_file):
-                state = Task_Flag_Runing
-
-            self.emit(QtCore.SIGNAL("Activated"), state, taskid)
-            time.sleep(1)
-
-
 if __name__ == "__main__":
     _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
-
-    # task flag
-    Task_Flag_Waiting   = 0
-    Task_Flag_Runing    = 1
-    Task_Flag_Stoped    = 2
-    Task_Flag_Failed    = 3
-
-    # spider
-    Spider_Path = 'spiders'
 
     app = QtGui.QApplication(sys.argv)
     Mainapp = MainUI()
