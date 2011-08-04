@@ -348,66 +348,38 @@ class MainUI(QtGui.QMainWindow):
         if spider==None:
             self.stopCrawl(taskid)
         else:
+            self.crawlList[taskid] = spider
+            from twisted.python import log
+            log.startLogging(sys.stdout)
+            from ui_thread import CrawlerScript
+            crawler = CrawlerScript(taskid, spider, self)
+            t = crawler.run()
+
+            '''
             from twisted.internet import reactor, task
             from twisted.python import log
             log.startLogging(sys.stdout)
 
             from crawl import MyCrawl
-            crawler = MyCrawl(spider)
+            crawler = MyCrawl(taskid, spider, self)
             crawler.run()
-
-            '''
-            self.count = 0
-            def testReactor():
-                self.count += 1
-                print 'tick %d ...' % self.count
-
-            def doit():
-                task.LoopingCall(testReactor).start(1.0)
-                #reactor.callLater(15.0,reactor.stop)
-
-            #reactor.callWhenRunning(doit)
-            task.LoopingCall(testReactor).start(1.0)
-            reactor.run()
             '''
 
-            '''
-            from scrapy.conf import settings
-            from scrapy.crawler import CrawlerProcess
-            from twisted.internet import threads
-            from scrapy.utils.console import start_python_console
-            #settings.overrides['QUEUE_CLASS'] = 'scrapy.core.queue.KeepAliveExecutionQueue'
-            crawler = CrawlerProcess(settings)
-            crawler.install()
-            crawler.configure()
-
-            from ui_thread import BlockingCrawlerFromThread
-            blocking_crawler = BlockingCrawlerFromThread(crawler)
-
-            d = threads.deferToThread(start_python_console, {'crawler': blocking_crawler})
-            d.addBoth(lambda x: crawler.stop())
-            crawler.start()
-            '''
-
-            '''
-            from ui_thread import RunCrawl
-            t = RunCrawl(self.taskList[taskid]['taskinfo'], blocking_crawler, spider, self)
-            self.crawlList[taskid] = t
-            self.connect(t, QtCore.SIGNAL("Updated"), self.updateTaskState)
-            t.start()
-            '''
-
-    def stopCrawl(self, taskid):
+    def stopCrawl(self, taskid, state=Task_Flag_Stoped):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
             return
         if taskid == -1:
             for x in Func.searchFile('*.lock', Spider_Path): os.remove(x)
             self.crawlList.clear()
         else:
+            #t = self.crawlList[taskid]
+            #t.stop()
+
             spider_name, spider_file = self.getCrawlSpider(taskid)
             os.remove('%s.lock' % spider_file)
             self.taskList[taskid]['item'].setIcon(self.task_state_col, QtGui.QIcon(self.task_state_failed))
             del self.crawlList[taskid]
+            print 'Stopped: %s' % spider_name
 
 
 if __name__ == "__main__":

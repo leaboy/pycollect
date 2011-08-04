@@ -22,9 +22,11 @@ def connect(signal):
         return func
     return wrapper
 
-class MyCrawl(object):
-    def __init__(self, spider):
+class MyCrawl():
+    def __init__(self, taskid, spider, parent):
+        self.taskid = taskid
         self.spider = spider
+        self.parent = parent
         self.crawler = None
 
     def spider_opened(self, spider):
@@ -32,9 +34,9 @@ class MyCrawl(object):
 
     def spider_closed(self, spider):
         print "closed spider %s" % spider.name
-
-    def item_passed(self, item, **kwargs):
-        print "Got:", item
+        self.crawler.uninstall()
+        self.parent.stopCrawl(self.taskid)
+        #print self.taskid, self.parent
 
     def stop(self):
         self.crawler.stop()
@@ -59,4 +61,3 @@ class MyCrawl(object):
         self.crawler.queue.append_spider(self.spider)
 
         self.crawler.start()
-        self.stop()
