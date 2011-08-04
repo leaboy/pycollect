@@ -239,7 +239,7 @@ class MainUI(QtGui.QMainWindow):
         if curState==state:
             return
         #taskItem.setIcon(self.task_state_col, QtGui.QIcon('res/loading.gif'))
-        stateIcon = {Task_Flag_Waiting: self.task_state_wait, Task_Flag_Runing: self.task_state_run, Task_Flag_Stoped: self.task_state_stop}
+        stateIcon = {Task_Flag_Waiting: self.task_state_wait, Task_Flag_Runing: self.task_state_run, Task_Flag_Stoped: self.task_state_stop, Task_Flag_Failed: self.task_state_failed}
         taskItem.setIcon(self.task_state_col, QtGui.QIcon(stateIcon[state]))
         taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))
 
@@ -352,8 +352,8 @@ class MainUI(QtGui.QMainWindow):
             from twisted.python import log
             log.startLogging(sys.stdout)
             from ui_thread import CrawlerScript
-            crawler = CrawlerScript(taskid, spider, self)
-            t = crawler.run()
+            t = CrawlerScript(taskid, spider, self)
+            t.run()
 
             '''
             from twisted.internet import reactor, task
@@ -372,13 +372,10 @@ class MainUI(QtGui.QMainWindow):
             for x in Func.searchFile('*.lock', Spider_Path): os.remove(x)
             self.crawlList.clear()
         else:
-            #t = self.crawlList[taskid]
-            #t.stop()
-
             spider_name, spider_file = self.getCrawlSpider(taskid)
             os.remove('%s.lock' % spider_file)
-            self.taskList[taskid]['item'].setIcon(self.task_state_col, QtGui.QIcon(self.task_state_failed))
             del self.crawlList[taskid]
+            self.updateTaskState(state, taskid)
             print 'Stopped: %s' % spider_name
 
 

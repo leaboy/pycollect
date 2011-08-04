@@ -73,11 +73,8 @@ def connect(signal):
         return func
     return wrapper
 
-class CrawlerScript(QtCore.QThread):
-
+class CrawlerScript():
     def __init__(self, taskid, spider, parent):
-        QtCore.QThread.__init__(self, parent)
-
         self.parent = parent
         self.taskid = taskid
         self.spider = spider
@@ -96,21 +93,24 @@ class CrawlerScript(QtCore.QThread):
 
     def spider_closed(self, spider):
         print "closed spider %s" % spider.name
-        self.stop()
-        self.parent.stopCrawl(self.taskid)
+        self.stop(Task_Flag_Stoped)
 
-    def stop(self):
+    def stop(self, state):
         self.crawler.stop()
+        self.crawler.uninstall()
+        self.parent.stopCrawl(self.taskid, state)
 
     def run(self):
         if not self.spider:
-            self.stop()
+            self.stop(Task_Flag_Failed)
+
         @connect(signals.item_passed)
         def catch_item(sender, item, **kwargs):
             print "Got:", item
-        self.crawler.queue.append_spider(self.spider)
+
+        SpiderClass = type(self.spider)
+        self.crawler.queue.append_spider(SpiderClass())
         try:
             self.crawler.start()
         except:
-            self.emit(QtCore.SIGNAL("Activated"), Task_Flag_Failed, taskid)
-        #self.crawler.stop()
+            self.stop(Task_Flag_Failed)
