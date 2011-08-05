@@ -348,35 +348,35 @@ class MainUI(QtGui.QMainWindow):
         if spider==None:
             self.stopCrawl(taskid)
         else:
-            self.crawlList[taskid] = spider
-            from twisted.python import log
-            log.startLogging(sys.stdout)
-            from ui_thread import CrawlerScript
-            t = CrawlerScript(taskid, spider, self)
-            t.run()
+            taskinfo = self.taskList[taskid]['taskinfo']
+            task_listurl = Func.getStartUrls(taskinfo['listurl'], taskinfo['listpagestart'], taskinfo['listpageend'], taskinfo['wildcardlen'], taskinfo['stockdata'])
 
-            '''
-            from twisted.internet import reactor, task
-            from twisted.python import log
-            log.startLogging(sys.stdout)
-
-            from crawl import MyCrawl
-            crawler = MyCrawl(taskid, spider, self)
-            crawler.run()
-            '''
+            from ui_thread import RunCrawl2
+            crawlThreadList = []
+            for url in task_listurl:
+                t = RunCrawl2(url, taskinfo, self)
+                self.connect(t, QtCore.SIGNAL("Updated"), self.stopCrawl)
+                crawlThreadList.append(t)
+                t.start()
+            self.crawlList[taskid] = crawlThreadList
 
     def stopCrawl(self, taskid, state=Task_Flag_Stoped):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
             return
         if taskid == -1:
+            for crawl in self.crawlList:
+                for t in crawl:
+                    t.stop()
             for x in Func.searchFile('*.lock', Spider_Path): os.remove(x)
             self.crawlList.clear()
         else:
+            crawl = self.crawlList[taskid]
+            for t in crawl:
+                t.stop()
+            del self.crawlList[taskid]
             spider_name, spider_file = self.getCrawlSpider(taskid)
             os.remove('%s.lock' % spider_file)
-            del self.crawlList[taskid]
             self.updateTaskState(state, taskid)
-            print 'Stopped: %s' % spider_name
 
 
 if __name__ == "__main__":

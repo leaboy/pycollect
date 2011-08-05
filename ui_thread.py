@@ -59,58 +59,19 @@ class RunTask(QtCore.QThread):
             time.sleep(1)
 
 
+from crawl2 import Crawl2
 
-
-from scrapy import log, signals, project
-from scrapy.xlib.pydispatch import dispatcher
-from scrapy.conf import settings
-from scrapy.crawler import CrawlerProcess
-
-def connect(signal):
-    """Handy signal hook decorator"""
-    def wrapper(func):
-        dispatcher.connect(func, signal)
-        return func
-    return wrapper
-
-class CrawlerScript():
-    def __init__(self, taskid, spider, parent):
+class RunCrawl2(QtCore.QThread):
+    def __init__(self, url, taskinfo, parent):
+        QtCore.QThread.__init__(self, parent)
+        self.url = url
+        self.taskinfo = taskinfo
+        self.stoped = False
         self.parent = parent
-        self.taskid = taskid
-        self.spider = spider
 
-        settings.overrides['LOG_ENABLED'] = False
-        self.crawler = CrawlerProcess(settings)
-        if not hasattr(project, 'crawler'):
-            self.crawler.install()
-        self.crawler.configure()
-
-        dispatcher.connect(self.spider_opened, signal=signals.spider_opened)
-        dispatcher.connect(self.spider_closed, signal=signals.spider_closed)
-
-    def spider_opened(self, spider):
-        print "opened spider %s" % spider.name
-
-    def spider_closed(self, spider):
-        print "closed spider %s" % spider.name
-        self.stop(Task_Flag_Stoped)
-
-    def stop(self, state):
-        self.crawler.stop()
-        self.crawler.uninstall()
-        self.parent.stopCrawl(self.taskid, state)
+    def stop(self):
+        self.stoped = True
 
     def run(self):
-        if not self.spider:
-            self.stop(Task_Flag_Failed)
-
-        @connect(signals.item_passed)
-        def catch_item(sender, item, **kwargs):
-            print "Got:", item
-
-        SpiderClass = type(self.spider)
-        self.crawler.queue.append_spider(SpiderClass())
-        try:
-            self.crawler.start()
-        except:
-            self.stop(Task_Flag_Failed)
+        if not self.stoped:
+            Crawl2(self.url, self.taskinfo, self.parent)
