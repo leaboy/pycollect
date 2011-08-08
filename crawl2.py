@@ -45,10 +45,8 @@ class Crawl2():
         urlListHtml = self.httpRequest(url)[1]
         urlListHtml = self.parseData(urlListHtml, self.robotinfo['subjecturlrule'], '[list]')
         urlListHtml = (urlListHtml==None and [''] or [urlListHtml])[0]
-        #urlList = self.getURL(url, urlListHtml)
-        #urlList = self.filterData(url, urlList)
-        #print urlListHtml
-        return
+        urlList = self.getURL(url, urlListHtml)
+        urlList = self.filterData(url, urlList)
 
         listlength = len(urlList)
         if urlList!=None and listlength>0:
@@ -115,7 +113,6 @@ class Crawl2():
     def sect(self, html, rulestart, ruleend, cls=''):
         if len(html)==0 : return
         reHTML = re.search(rulestart + '(.*?)' + ruleend, html, re.I|re.M)
-        print reHTML
         if reHTML == None : return
         reHTML = reHTML.group()
         intStart = re.search(rulestart, reHTML, re.I|re.M).end()
@@ -153,7 +150,7 @@ class Crawl2():
                 contentType = rs.getheader('Content-Type')
 
             if contentType == 'text/html':
-                content = encoding(content).toutf8()
+                content = toutf8(content)
             else:
                 if self.robotinfo['downloadmode'] == 0:
                     content = ''
@@ -206,8 +203,6 @@ class Crawl2():
             comma = (execSQL=='' and [''] or [';'])[0]
             translate = make_xlat(adict)
             execSQL += comma + translate(importSQL)
-        print execSQL
-        return
         _G = self.parent.getConnection()
         _G['DB'].execute(execSQL)
         '''
