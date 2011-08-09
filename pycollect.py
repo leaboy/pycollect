@@ -41,8 +41,10 @@ class MainUI(QtGui.QMainWindow):
 
         self.yesstr = u'√'
         self.nostr  = u'-'
-        self.task_list     = False
-        self.task_robot    = False
+        self.task_list          = False
+        self.task_list_menu     = False
+        self.task_robot         = False
+        self.task_robot_menu    = False
         self.task_state_wait    = 'res/task_state_waiting.png'
         self.task_state_run     = 'res/task_state_runing.png'
         self.task_state_stop    = 'res/task_state_stoped.png'
@@ -59,6 +61,19 @@ class MainUI(QtGui.QMainWindow):
         self.common_del_icon    = QtGui.QIcon('res/common_delete.png')
 
         self.task_id_col = self.task_state_col = self.task_nextruntime_col = 0
+
+        # mainlist menu
+        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加", self, triggered=self.TaskDialog, shortcut="Ctrl+N")
+        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
+        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
+        self.separator  = QtGui.QAction(self)
+        self.separator.setSeparator(True)
+        self.taskStart  = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
+        self.taskStop   = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
+
+        self.robotAdd    = QtGui.QAction(self.robot_add_icon, u"添加", self, triggered=self.RobotDialog, shortcut="Ctrl+N")
+        self.robotEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
+        self.robotDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
 
         # task list: {taskid: {item: QTreeWidgetItem, taskinfo: taskinfo list}}
         self.taskList = {}
@@ -177,21 +192,16 @@ class MainUI(QtGui.QMainWindow):
 
     def setTaskMenu(self):
         '''taskitem menu'''
-        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加任务", self, triggered=self.TaskDialog, shortcut="Ctrl+N")
-        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改任务", self)
-        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除任务", self)
-        self.separator  = QtGui.QAction(self)
-        self.separator.setSeparator(True)
-        self.taskStart  = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
-        self.taskStop   = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
+        if not self.task_list_menu:
+            self.ui.mainlist.addAction(self.taskAdd)
+            self.ui.mainlist.addAction(self.taskEdit)
+            self.ui.mainlist.addAction(self.taskDelete)
+            self.ui.mainlist.addAction(self.separator)
+            self.ui.mainlist.addAction(self.taskStart)
+            self.ui.mainlist.addAction(self.taskStop)
+            self.task_menu = True
 
-        self.ui.mainlist.addAction(self.taskAdd)
-        self.ui.mainlist.addAction(self.taskEdit)
-        self.ui.mainlist.addAction(self.taskDelete)
-        self.ui.mainlist.addAction(self.separator)
-        self.ui.mainlist.addAction(self.taskStart)
-        self.ui.mainlist.addAction(self.taskStop)
+        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
     def getCurrentTask(self):
         item = self.ui.mainlist.currentItem()
@@ -211,6 +221,7 @@ class MainUI(QtGui.QMainWindow):
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
+        self.setRobotMenu()
 
         if _G['conn']==None:
             return
@@ -226,9 +237,30 @@ class MainUI(QtGui.QMainWindow):
             robotItem = QtGui.QTreeWidgetItem([i['name'], i['rulemode'], i['speed'], i['threads'], i['reverseorder'], i['linkmode'], i['downloadmode']])
             self.ui.mainlist.addTopLevelItem(robotItem)
 
+    def setRobotMenu(self):
+        '''robotitem menu'''
+        if not self.task_robot_menu:
+            self.ui.mainlist.addAction(self.robotAdd)
+            self.ui.mainlist.addAction(self.robotEdit)
+            self.ui.mainlist.addAction(self.robotDelete)
+            self.task_bobot_menu = True
+
+        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+
     def updateMainListFlag(self, task=True, robot=False):
         self.task_list = task
         self.task_robot = robot
+
+        self.taskAdd.setVisible(task)
+        self.taskEdit.setVisible(task)
+        self.taskDelete.setVisible(task)
+        self.separator.setVisible(task)
+        self.taskStart.setVisible(task)
+        self.taskStop.setVisible(task)
+
+        self.robotAdd.setVisible(robot)
+        self.robotEdit.setVisible(robot)
+        self.robotDelete.setVisible(robot)
 
     def updateTaskState(self, state, taskid):
         '''change task state'''
@@ -334,36 +366,24 @@ class MainUI(QtGui.QMainWindow):
         '''run scrapy crawl'''
         if self.crawlList.has_key(taskid):
             return
-        spider_name, spider_file = self.getCrawlSpider(taskid)
-        locker_file = '%s.lock' % spider_file
-        fp = open(locker_file, 'w')
-        fp.close()
 
-        try:
-            spider_class = getattr(__import__('%s.%s' % (Spider_Path, spider_name), globals(), locals(), ['*'], -1), 'MySpider')
-            spider = spider_class()
-        except:
-            spider = None
+        from crawl2 import RunCrawl
 
-        if spider==None:
-            self.stopCrawl(taskid)
-        else:
-            self.crawlList[taskid] = spider
-            from twisted.python import log
-            log.startLogging(sys.stdout)
-            from ui_thread import CrawlerScript
-            t = CrawlerScript(taskid, spider, self)
-            t.run()
+        taskinfo = self.taskList[taskid]['taskinfo']
+        task_listurl    = taskinfo['listurl']
+        task_pagestart  = taskinfo['listpagestart']
+        task_pageend    = taskinfo['listpageend']
+        task_wildcardlen= taskinfo['wildcardlen']
+        task_stockdata  = taskinfo['stockdata']
+        task_listrule   = taskinfo['subjecturlrule']
+        task_titlerule  = taskinfo['subjectrule']
+        task_linkrule   = taskinfo['subjecturllinkrule']
+        task_contentrule= taskinfo['messagerule']
 
-            '''
-            from twisted.internet import reactor, task
-            from twisted.python import log
-            log.startLogging(sys.stdout)
+        taskinfo['listurl'] = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
 
-            from crawl import MyCrawl
-            crawler = MyCrawl(taskid, spider, self)
-            crawler.run()
-            '''
+        crawler = RunCrawl(taskinfo, self)
+        crawler.run()
 
     def stopCrawl(self, taskid, state=Task_Flag_Stoped):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):

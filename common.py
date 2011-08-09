@@ -98,7 +98,7 @@ class Func:
             for i in manualUrl:
                 listurl.append(i)
 
-        return listurl
+        return map(str, listurl)
 
     def getListPageNum(self, pagestart, pageend, wildcardlen):
         pagestart = (isinstance(pagestart, int) and [pagestart] or [0])[0]
