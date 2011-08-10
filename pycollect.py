@@ -42,20 +42,20 @@ class MainUI(QtGui.QMainWindow):
         self.task_list_menu     = False
         self.task_robot         = False
         self.task_robot_menu    = False
-        self.task_state_wait    = 'res/task_state_waiting.png'
-        self.task_state_run     = 'res/task_state_runing.png'
-        self.task_state_stop    = 'res/task_state_stoped.png'
-        self.task_state_failed  = 'res/task_state_failed.png'
+        self.task_state_wait    = 'icons/task_state_waiting.png'
+        self.task_state_run     = 'icons/task_state_runing.png'
+        self.task_state_stop    = 'icons/task_state_stoped.png'
+        self.task_state_failed  = 'icons/task_state_failed.png'
 
-        self.task_icon      = QtGui.QIcon('res/task.png')
-        self.task_add_icon  = QtGui.QIcon('res/task_add.png')
+        self.task_icon      = QtGui.QIcon('icons/task.png')
+        self.task_add_icon  = QtGui.QIcon('icons/task_add.png')
 
-        self.robot_icon      = QtGui.QIcon('res/robot.png')
-        self.robot_add_icon      = QtGui.QIcon('res/robot_add.png')
+        self.robot_icon      = QtGui.QIcon('icons/robot.png')
+        self.robot_add_icon      = QtGui.QIcon('icons/robot_add.png')
 
-        self.common_list_icon    = QtGui.QIcon('res/common_list.png')
-        self.common_edit_icon   = QtGui.QIcon('res/common_edit.png')
-        self.common_del_icon    = QtGui.QIcon('res/common_delete.png')
+        self.common_list_icon    = QtGui.QIcon('icons/common_list.png')
+        self.common_edit_icon   = QtGui.QIcon('icons/common_edit.png')
+        self.common_del_icon    = QtGui.QIcon('icons/common_delete.png')
 
         self.task_id_col = self.task_state_col = self.task_nextruntime_col = 0
 
@@ -263,7 +263,7 @@ class MainUI(QtGui.QMainWindow):
         curState = Func._variantConv(taskItem.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
         if curState==state:
             return
-        #taskItem.setIcon(self.task_state_col, QtGui.QIcon('res/loading.gif'))
+        #taskItem.setIcon(self.task_state_col, QtGui.QIcon('icons/loading.gif'))
         stateIcon = {Task_Flag_Waiting: self.task_state_wait, Task_Flag_Runing: self.task_state_run, Task_Flag_Stoped: self.task_state_stop, Task_Flag_Failed: self.task_state_failed}
         taskItem.setIcon(self.task_state_col, QtGui.QIcon(stateIcon[state]))
         taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))
@@ -284,7 +284,7 @@ class MainUI(QtGui.QMainWindow):
         '''create threads if it's not exist'''
         if self.threadList.has_key(taskid):
             return
-        from task import RunTask
+        from run_task import RunTask
         t = RunTask(self.taskList[taskid]['taskinfo'], self)
         self.threadList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.updateNextRunTime)
@@ -310,7 +310,7 @@ class MainUI(QtGui.QMainWindow):
         if self.crawlList.has_key(taskid):
             return
 
-        from crawl import DummySpider, RunCrawl
+        from run_crawl import DummySpider, RunCrawl
 
         taskinfo = self.taskList[taskid]['taskinfo'].copy()
         task_listurl    = taskinfo['listurl']
@@ -346,9 +346,7 @@ if __name__ == "__main__":
     _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
 
-    import qt4reactor
     app = QtGui.QApplication(sys.argv)
-    qt4reactor.install()
 
     # show main window
     Mainapp = MainUI()
