@@ -79,7 +79,8 @@ class CCrawler:
         logger.info("CCrawler closed.\n")
 
     def stop(self):
-        print self.pool.waiting(), self.pool.running()
+        self.creq.resize(0)
+        logger.info("stopping crawl...")
 
     def pipeliner(self, item):
         print item

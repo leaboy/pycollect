@@ -28,9 +28,6 @@ Task_Flag_Runing    = 1
 Task_Flag_Stoped    = 2
 Task_Flag_Failed    = 3
 
-# spider
-Spider_Path = 'spiders'
-
 
 class MainUI(QtGui.QMainWindow):
     def __init__(self, parent=None):
@@ -165,9 +162,6 @@ class MainUI(QtGui.QMainWindow):
         self.task_state_col = self.ui.mainlist.columnCount()-1
         self.task_nextruntime_col = self.task_state_col-1
 
-        # init spider
-        self.initCrawlSpider()
-
         taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.* FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid ORDER BY t.taskid")
         for i in taskList:
             taskid  = i['taskid']
@@ -182,9 +176,6 @@ class MainUI(QtGui.QMainWindow):
             taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(Task_Flag_Waiting))
             taskItem.setTextAlignment(2, QtCore.Qt.AlignHCenter)
             self.ui.mainlist.addTopLevelItem(taskItem)
-
-            # check spider
-            self.createCrawlSpider(taskid, i)
 
             # start task thread
             self.taskList[taskid] = {'item': taskItem, 'taskinfo': i}
@@ -217,7 +208,7 @@ class MainUI(QtGui.QMainWindow):
     def manualStop(self):
         '''stopped task Immediately'''
         item, taskid = self.getCurrentTask()
-        self.stopCrawl(taskid)
+        self.stopCrawl(taskid, Task_Flag_Failed)
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
@@ -266,7 +257,9 @@ class MainUI(QtGui.QMainWindow):
         '''change task state'''
         if not self.task_list:
             return
-        taskItem = self.taskList[taskid]['item']
+        taskList = self.taskList[taskid]
+        isloop = taskList['taskinfo']['loop']
+        taskItem = taskList['item']
         curState = Func._variantConv(taskItem.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
         if curState==state:
             return
@@ -275,7 +268,7 @@ class MainUI(QtGui.QMainWindow):
         taskItem.setIcon(self.task_state_col, QtGui.QIcon(stateIcon[state]))
         taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))
 
-        if state==Task_Flag_Stoped:
+        if state==Task_Flag_Stoped and isloop==0:
             self.stopThread(taskid)
         elif state==Task_Flag_Runing:
             self.runCrawl(taskid)
@@ -291,7 +284,7 @@ class MainUI(QtGui.QMainWindow):
         '''create threads if it's not exist'''
         if self.threadList.has_key(taskid):
             return
-        from ui_thread import RunTask
+        from task import RunTask
         t = RunTask(self.taskList[taskid]['taskinfo'], self)
         self.threadList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.updateNextRunTime)
@@ -312,62 +305,12 @@ class MainUI(QtGui.QMainWindow):
             self.taskList[taskid]['item'].setIcon(self.task_state_col, QtGui.QIcon(self.task_state_stop))
             del self.threadList[taskid]
 
-    def getCrawlSpider(self, taskid):
-        spider_name = hashlib.md5(str(taskid)).hexdigest()
-        spider_file = '%s/%s' % (Spider_Path, spider_name)
-        return spider_name, spider_file
-
-    def initCrawlSpider(self):
-        '''creat task spider if not exist'''
-        if not os.path.exists(Spider_Path):
-            os.makedirs(Spider_Path)
-        init_file = '%s/__init__.py' % Spider_Path
-        if not os.path.isfile(init_file):
-            fp = open(init_file, 'w')
-            fp.close()
-
-    def createCrawlSpider(self, taskid, taskinfo):
-        task_listurl    = taskinfo['listurl']
-        task_pagestart  = taskinfo['listpagestart']
-        task_pageend    = taskinfo['listpageend']
-        task_wildcardlen= taskinfo['wildcardlen']
-        task_stockdata  = taskinfo['stockdata']
-        task_listrule   = taskinfo['subjecturlrule']
-        task_titlerule  = taskinfo['subjectrule']
-        task_linkrule   = taskinfo['subjecturllinkrule']
-        task_contentrule= taskinfo['messagerule']
-
-        spider_name, spider_file = self.getCrawlSpider(taskid)
-        spider_file = '%s.py' % spider_file
-
-        if not os.path.isfile(spider_file):
-            task_listurl = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
-            task_listurl_str = simplejson.dumps(task_listurl)
-            fp = open('spider', 'r')
-            spider_tmp = fp.read()
-            fp.close()
-            # xpath
-            task_titlerule  = (task_titlerule=='' and [''] or ['loader.add_xpath(\'title\', \'%s\')' % task_titlerule])[0]
-            task_linkrule   = (task_linkrule=='' and [''] or ['loader.add_xpath(\'link\', \'%s\')' % task_linkrule])[0]
-            task_contentrule= (task_contentrule=='' and [''] or ['loader.add_xpath(\'content\', \'%s\')' % task_contentrule])[0]
-            task_xpath = "%s\n            %s\n            %s" % (task_titlerule, task_linkrule, task_contentrule)
-            # replace
-            spider_tmp = spider_tmp.replace('#Date#', time.strftime('%Y-%m-%d %H:%M:%S'))
-            spider_tmp = spider_tmp.replace('#spider_name#', spider_name)
-            spider_tmp = spider_tmp.replace('#list_urls#', task_listurl_str)
-            spider_tmp = spider_tmp.replace('#rule_list#', task_listrule)
-            spider_tmp = spider_tmp.replace('#xpath#', task_xpath)
-            spider_tmp = Func.iConv(spider_tmp)
-            fp = open(spider_file, 'w')
-            fp.write(spider_tmp)
-            fp.close()
-
     def runCrawl(self, taskid):
         '''run scrapy crawl'''
         if self.crawlList.has_key(taskid):
             return
 
-        from crawl2 import DummySpider, RunCrawl
+        from crawl import DummySpider, RunCrawl
 
         taskinfo = self.taskList[taskid]['taskinfo'].copy()
         task_listurl    = taskinfo['listurl']
@@ -383,21 +326,20 @@ class MainUI(QtGui.QMainWindow):
         taskinfo['listurl'] = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
 
         spider = DummySpider(taskinfo)
-        crawler = RunCrawl(spider, self)
-        crawler.start()
+        t = RunCrawl(taskid, spider, self)
+        self.crawlList[taskid] = t
+        self.connect(t, QtCore.SIGNAL("Updated"), self.stopCrawl)
+        t.start()
 
-    def stopCrawl(self, taskid, state=Task_Flag_Stoped):
+    def stopCrawl(self, taskid, state):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):
             return
         if taskid == -1:
-            for x in Func.searchFile('*.lock', Spider_Path): os.remove(x)
             self.crawlList.clear()
         else:
-            spider_name, spider_file = self.getCrawlSpider(taskid)
-            os.remove('%s.lock' % spider_file)
+            self.crawlList[taskid].stop()
             del self.crawlList[taskid]
             self.updateTaskState(state, taskid)
-            print 'Stopped: %s' % spider_name
 
 
 if __name__ == "__main__":
