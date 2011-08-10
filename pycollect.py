@@ -120,13 +120,13 @@ class MainUI(QtGui.QMainWindow):
 
     def iniDatabaseConn(self):
         _G['dbhost']    = ini.get("database","dbhost")
-        _G['dbhost']    = (_G['dbhost']==None and [''] or _G['dbhost'])
+        _G['dbhost']    = (_G['dbhost']==None and [''] or [_G['dbhost']])[0]
         _G['dbname']    = ini.get("database","dbname")
-        _G['dbname']    = (_G['dbname']==None and [''] or _G['dbname'])
+        _G['dbname']    = (_G['dbname']==None and [''] or [_G['dbname']])[0]
         _G['dbuser']    = ini.get("database","dbuser")
-        _G['dbuser']    = (_G['dbuser']==None and [''] or _G['dbuser'])
+        _G['dbuser']    = (_G['dbuser']==None and [''] or [_G['dbuser']])[0]
         _G['dbpw']      = ini.get("database","dbpw")
-        _G['dbpw']      = (_G['dbpw']==None and [''] or _G['dbpw'])
+        _G['dbpw']      = (_G['dbpw']==None and [''] or [_G['dbpw']])[0]
 
         if _G['dbhost'] and _G['dbname'] and _G['dbuser'] and _G['dbpw'] is not None:
             self.getConnection()
@@ -367,9 +367,9 @@ class MainUI(QtGui.QMainWindow):
         if self.crawlList.has_key(taskid):
             return
 
-        from crawl2 import RunCrawl
+        from crawl2 import DummySpider, RunCrawl
 
-        taskinfo = self.taskList[taskid]['taskinfo']
+        taskinfo = self.taskList[taskid]['taskinfo'].copy()
         task_listurl    = taskinfo['listurl']
         task_pagestart  = taskinfo['listpagestart']
         task_pageend    = taskinfo['listpageend']
@@ -382,8 +382,9 @@ class MainUI(QtGui.QMainWindow):
 
         taskinfo['listurl'] = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
 
-        crawler = RunCrawl(taskinfo, self)
-        crawler.run()
+        spider = DummySpider(taskinfo)
+        crawler = RunCrawl(spider, self)
+        crawler.start()
 
     def stopCrawl(self, taskid, state=Task_Flag_Stoped):
         if not len(self.crawlList)>0 or (not self.crawlList.has_key(taskid) and taskid!=-1):

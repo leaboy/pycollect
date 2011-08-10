@@ -10,12 +10,16 @@ import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
 class DummySpider:
-    start_urls = ['http://www.163.com', 'http://www.qq.com', 'http://www.sina.com.cn', 'http://www.sohu.com', 'http://www.yahoo.com', 'http://www.baidu.com', 'http://www.google.com', 'http://www.microsoft.com']
+    start_urls = ['http://www.soso.com', 'http://www.google.tk', 'http://www.baidu.com', 'http://www.google.com', 'http://wiki.nocn.net']
     workers = 100
-    timeout = 20
+    timeout = 8
 
+    def parse(self, response):
+        url = response.url;
+        title = response.body;
+        return [url]
 
-    def pipeline(self, results):
+    def process_item(self, item):
         for r in results:
             print "save : %s" % r
 
@@ -27,6 +31,7 @@ class a:
 spider = DummySpider()
 crawler = CCrawler(spider)
 crawler.start()
+crawler.stop()
 
 
 '''
