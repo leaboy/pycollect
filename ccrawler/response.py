@@ -8,7 +8,7 @@
 #
 # GNU Free Documentation License 1.3
 
-from common import deprecated_setter
+from common import deprecated_setter, encoding
 
 class Response:
     def __init__(self, url, status=200, headers=None, body='', request=None):
@@ -17,6 +17,7 @@ class Response:
         self._set_body(body)
         self._set_url(url)
         self.request = request
+        self.encoding = body is not None and encoding(body)['encoding']
 
     def _get_body(self):
         return self._body

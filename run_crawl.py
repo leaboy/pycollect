@@ -1,5 +1,6 @@
 from ccrawler import common
 from ccrawler.ccrawler import CCrawler
+from ccrawler.selector import HtmlSelector
 
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
@@ -9,12 +10,21 @@ class DummySpider:
         self.start_urls = taskinfo['listurl']
         self.workers = 100
         self.timeout = 20
+        self.importSQL = taskinfo['importSQL']
 
     def parse(self, response):
-        print len(response.body)
+        hxs = HtmlSelector(response.body)
 
-    def pipeline(self, item):
-        pass
+        itemlist = hxs.select('//td[@class="td10"]')
+
+        for item in itemlist:
+            title = item.select('a/text()').extract()[0]
+            link = item.select('a/@href').extract()[0]
+            yield (title, link)
+
+    def process_item(self, item):
+        for i in item:
+            print i
 
 
 
