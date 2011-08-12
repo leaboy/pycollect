@@ -325,7 +325,7 @@ class MainUI(QtGui.QMainWindow):
 
         taskinfo['listurl'] = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
 
-        spider = DummySpider(taskinfo)
+        spider = DummySpider(taskinfo, self)
         t = RunCrawl(taskid, spider, self)
         self.crawlList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.stopCrawl)

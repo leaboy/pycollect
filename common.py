@@ -8,7 +8,7 @@
 #
 # GNU Free Documentation License 1.3
 
-import os, sys, time, datetime
+import os, sys, time, datetime, re
 import simplejson
 
 from PyQt4 import QtCore
@@ -126,6 +126,17 @@ class Func:
             return stockList
         stockList = (isinstance(stockList, list) and [stockList] or [stockList])[0]
         return stockList
+
+class make_xlat:
+    def __init__(self, *args, **kwds):
+        self.adict = dict(*args, **kwds)
+        self.rx = self.make_rx()
+    def make_rx(self):
+        return re.compile('|'.join(map(re.escape, self.adict)))
+    def one_xlat(self, match):
+        return str(self.adict[match.group(0)])
+    def __call__(self, text):
+        return self.rx.sub(self.one_xlat, text)
 
 # instance helper functions
 Func = Func()

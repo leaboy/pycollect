@@ -68,10 +68,10 @@ def encoding(text):
 
     try:
         if text is None:
-            text = 'None'
+            return {'text': 'None', 'confidence': 1.0, 'encoding': 'ascii'}
 
         if isinstance(text, unicode):
-            return text
+            return {'text': text, 'confidence': 1.0, 'encoding': 'ascii'}
 
         elif isinstance(text, basestring):
             char = chardet.detect(text)

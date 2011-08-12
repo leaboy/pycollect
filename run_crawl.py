@@ -5,27 +5,62 @@ from ccrawler.selector import HtmlSelector
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
+import time
+from common import make_xlat
+
 class DummySpider:
-    def __init__(self, taskinfo):
+    def __init__(self, taskinfo, parent):
+        self.taskid = taskinfo['taskid']
+        self.robotid = taskinfo['robotid']
         self.start_urls = taskinfo['listurl']
+        self.subjecturlrule = taskinfo['subjecturlrule']
+        self.subjectrule = taskinfo['subjectrule']
+        self.subjecturllinkrule   = taskinfo['subjecturllinkrule']
+        self.messagerule = taskinfo['messagerule']
+        self.importSQL = taskinfo['importSQL']
+        self.rulemode = taskinfo['rulemode']
         self.workers = 100
         self.timeout = 20
-        self.importSQL = taskinfo['importSQL']
+        self.parent = parent
+
+        conn = self.parent.getConnection()
+        self.DB = ((conn.has_key('DB') and conn['DB'] is not None) and \
+            [conn['DB']] or [None])[0]
 
     def parse(self, response):
+        res = {}
+        res['url'] = response.url
+        res['message'] = 'None'
+
         hxs = HtmlSelector(response.body)
+        if self.rulemode=='xpath':
+            itemlist = hxs.select(self.subjecturlrule)
+            for item in itemlist:
+                res['title'] = item.select(self.subjectrule).extract()[0]
+                res['link'] = item.select(self.subjecturllinkrule).extract()[0]
+                yield res
 
-        itemlist = hxs.select('//td[@class="td10"]')
-
-        for item in itemlist:
-            title = item.select('a/text()').extract()[0]
-            link = item.select('a/@href').extract()[0]
-            yield (title, link)
+        elif self.rulemode=='regex':
+            itemlist = hxs.re(self.subjecturlrule)
+            for item in itemlist:
+                res['title'] = item.re(self.subjectrule)
+                res['link'] = item.re(self.subjecturllinkrule)
+                yield res
 
     def process_item(self, item):
+        execSQL = ''
         for i in item:
-            print i
+            #adict = {'[taskid]': str(self.taskid), '[robotid]': str(self.robotid), '[link]': i['link'].encode('utf-8'), '[title]': i['title'].encode('utf-8'), '[message]': i['message'].encode('utf-8'), '[runtime]': time.mktime(time.localtime())}
+            adict = {'[link]': i['link'].encode('utf-8'), '[title]': i['title'].encode('utf-8'), '[runtime]': time.mktime(time.localtime())}
+            translate = make_xlat(adict)
+            comma = (execSQL=='' and [''] or [';'])[0]
+            execSQL += comma + translate(str(self.importSQL))
 
+        if self.DB and len(execSQL)>0:
+            try:
+                self.DB.execute(execSQL)
+            except:
+                logger.error('Execute SQL error.')
 
 
 from PyQt4 import QtCore

@@ -17,7 +17,7 @@ class Response:
         self._set_body(body)
         self._set_url(url)
         self.request = request
-        self.encoding = body is not None and encoding(body)['encoding']
+        self.encoding = encoding(body)['encoding']
 
     def _get_body(self):
         return self._body

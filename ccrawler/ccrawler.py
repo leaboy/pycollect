@@ -85,7 +85,8 @@ class CCrawler:
         while self.creq.empty() and not self.cres.empty():
             response = self.cres.get()
             item = self._parse(response)
-            self._pipeliner(item)
+            if item is not None:
+                self._pipeliner(item)
 
     def _parse(self, response):
         '''when spider's parse is empty, then use this replace with do nothing'''

@@ -18,14 +18,25 @@ class DummySpider:
 
     def parse(self, response):
         hxs = HtmlSelector(response.body)
-        itemlist = hxs.select('//td[@class="td10"]')
-        #print len(response.body)
+        '''
+        Usage re
+        '''
+        itemlist = hxs.re('<td class=\'td10\'>¡¤.*?<\/td>')
+        for item in itemlist:
+            title = item.re('<a[^>]*[^>]*>(.*)[^<]*<\/a>')
+            print title
 
+        '''
+        Usage xpath
+        '''
+        '''
+        itemlist = hxs.select('//td[@class="td10"]')
         for item in itemlist:
             #print item._root.xpath('a/text()')
             title = item.select('a/text()').extract()[0]
             link = item.select('a/@href').extract()[0]
             yield (title, link)
+        '''
 
     def process_item(self, item):
         for i in item:
