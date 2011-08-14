@@ -42,7 +42,7 @@ def logger(**kwargs):
     options = {
         'name': 'root',
         'level': logging.NOTSET, # DEBUG, INFO, WARNING, ERROR, CRITICAL
-        'format': '%(asctime)s [%(name)s] - %(levelname)s %(message)s',
+        'format': '%(asctime)s [%(name)s] - %(levelname)s -> %(message)s',
         'filename': 'root.log',
         'filemode': 'a', }
 

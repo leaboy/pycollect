@@ -23,10 +23,6 @@ class DummySpider:
         self.timeout = 20
         self.parent = parent
 
-        conn = self.parent.getConnection()
-        self.DB = ((conn.has_key('DB') and conn['DB'] is not None) and \
-            [conn['DB']] or [None])[0]
-
     def parse(self, response):
         res = {}
         res['url'] = response.url
@@ -43,8 +39,8 @@ class DummySpider:
         elif self.rulemode=='regex':
             itemlist = hxs.re(self.subjecturlrule)
             for item in itemlist:
-                res['title'] = item.re(self.subjectrule)
-                res['link'] = item.re(self.subjecturllinkrule)
+                res['title'] = item.re(self.subjectrule)[0]
+                res['link'] = item.re(self.subjecturllinkrule)[0]
                 yield res
 
     def process_item(self, item):
@@ -56,9 +52,12 @@ class DummySpider:
             comma = (execSQL=='' and [''] or [';'])[0]
             execSQL += comma + translate(str(self.importSQL))
 
-        if self.DB and len(execSQL)>0:
+        if len(execSQL)>0:
             try:
-                self.DB.execute(execSQL)
+                conn = self.parent.getConnection()
+                DB = ((conn.has_key('DB') and conn['DB'] is not None) and \
+                    [conn['DB']] or [None])[0]
+                DB.execute(execSQL)
             except:
                 logger.error('Execute SQL error.')
 
