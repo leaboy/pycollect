@@ -60,17 +60,7 @@ class MainUI(QtGui.QMainWindow):
         self.task_id_col = self.task_state_col = self.task_nextruntime_col = 0
 
         # mainlist menu
-        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加", self, triggered=self.TaskDialog, shortcut="Ctrl+N")
-        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
-        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
-        self.separator  = QtGui.QAction(self)
-        self.separator.setSeparator(True)
-        self.taskStart  = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
-        self.taskStop   = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
-
-        self.robotAdd    = QtGui.QAction(self.robot_add_icon, u"添加", self, triggered=self.RobotDialog, shortcut="Ctrl+N")
-        self.robotEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
-        self.robotDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
+        self.setMainListMenu()
 
         # task list: {taskid: {item: QTreeWidgetItem, taskinfo: taskinfo list}}
         self.taskList = {}
@@ -143,6 +133,39 @@ class MainUI(QtGui.QMainWindow):
                 _G['conn'] = conn._db
         return _G
 
+    def setMainListMenu(self):
+        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+
+        # task
+        self.taskMenu = QtGui.QMenu()
+        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加", self, triggered=self.TaskDialog, shortcut="Ctrl+N")
+        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
+        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
+        self.separator  = QtGui.QAction(self)
+        self.separator.setSeparator(True)
+        self.taskStart  = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
+        self.taskStop   = QtGui.QAction(u"立即结束", self, triggered=self.manualStop)
+
+        self.taskMenu.addAction(self.taskAdd)
+        self.taskMenu.addAction(self.taskEdit)
+        self.taskMenu.addAction(self.taskDelete)
+        self.taskMenu.addAction(self.separator)
+        self.taskMenu.addAction(self.taskStart)
+        self.taskMenu.addAction(self.taskStop)
+
+        # robot
+        self.robotMenu = QtGui.QMenu()
+        self.robotAdd    = QtGui.QAction(self.robot_add_icon, u"添加", self, triggered=self.RobotDialog, shortcut="Ctrl+N")
+        self.robotEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
+        self.robotDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
+
+        self.robotMenu.addAction(self.robotAdd)
+        self.robotMenu.addAction(self.robotEdit)
+        self.robotMenu.addAction(self.robotDelete)
+
+        # connect signal
+        self.ui.mainlist.customContextMenuRequested.connect(self.updateMainListMenu)
+
     def setHeaderMainList(self, header):
         self.ui.mainlist.header().setDefaultAlignment(QtCore.Qt.AlignHCenter)
         self.ui.mainlist.setColumnCount(len(header))
@@ -152,7 +175,6 @@ class MainUI(QtGui.QMainWindow):
 
     def getTaskList(self):
         self.updateMainListFlag(True, False)
-        self.setTaskMenu()
 
         if _G['conn']==None:
             return
@@ -181,19 +203,6 @@ class MainUI(QtGui.QMainWindow):
             self.taskList[taskid] = {'item': taskItem, 'taskinfo': i}
             self.runThread(taskid)
 
-    def setTaskMenu(self):
-        '''taskitem menu'''
-        if not self.task_list_menu:
-            self.ui.mainlist.addAction(self.taskAdd)
-            self.ui.mainlist.addAction(self.taskEdit)
-            self.ui.mainlist.addAction(self.taskDelete)
-            self.ui.mainlist.addAction(self.separator)
-            self.ui.mainlist.addAction(self.taskStart)
-            self.ui.mainlist.addAction(self.taskStop)
-            self.task_menu = True
-
-        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-
     def getCurrentTask(self):
         item = self.ui.mainlist.currentItem()
         return item, Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
@@ -212,7 +221,6 @@ class MainUI(QtGui.QMainWindow):
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
-        self.setRobotMenu()
 
         if _G['conn']==None:
             return
@@ -228,30 +236,35 @@ class MainUI(QtGui.QMainWindow):
             robotItem = QtGui.QTreeWidgetItem([i['name'], i['rulemode'], i['speed'], i['threads'], i['reverseorder'], i['linkmode'], i['downloadmode']])
             self.ui.mainlist.addTopLevelItem(robotItem)
 
-    def setRobotMenu(self):
-        '''robotitem menu'''
-        if not self.task_robot_menu:
-            self.ui.mainlist.addAction(self.robotAdd)
-            self.ui.mainlist.addAction(self.robotEdit)
-            self.ui.mainlist.addAction(self.robotDelete)
-            self.task_bobot_menu = True
-
-        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-
     def updateMainListFlag(self, task=True, robot=False):
         self.task_list = task
         self.task_robot = robot
 
-        self.taskAdd.setVisible(task)
-        self.taskEdit.setVisible(task)
-        self.taskDelete.setVisible(task)
-        self.separator.setVisible(task)
-        self.taskStart.setVisible(task)
-        self.taskStop.setVisible(task)
+    def updateMainListMenu(self, point):
+        item = self.ui.mainlist.currentItem()
+        #print item
+        if not item==None:
+            state = Func._variantConv(item.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
+            print type(state), state
+            if state==Task_Flag_Waiting:
+                self.taskEdit.setDisabled(False)
+                self.taskDelete.setDisabled(False)
+                self.taskStart.setDisabled(False)
+            elif state==Task_Flag_Runing:
+                self.taskStart.setDisabled(True)
+                self.taskStop.setDisabled(False)
+            else:
+                self.taskStart.setDisabled(False)
+        else:
+            self.taskEdit.setDisabled(True)
+            self.taskDelete.setDisabled(True)
+            self.taskStart.setDisabled(True)
+            self.taskStop.setDisabled(True)
 
-        self.robotAdd.setVisible(robot)
-        self.robotEdit.setVisible(robot)
-        self.robotDelete.setVisible(robot)
+        if self.task_list:
+            self.taskMenu.exec_(QtGui.QCursor.pos())
+        elif self.task_robot:
+            self.robotMenu.exec_(QtGui.QCursor.pos())
 
     def updateTaskState(self, state, taskid):
         '''change task state'''
