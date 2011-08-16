@@ -70,7 +70,7 @@ class MainUI(QtGui.QMainWindow):
         self.crawlList = {}
 
         # menu signal
-        self.ui.taskadd.triggered.connect(self.TaskDialog)
+        self.ui.taskadd.triggered.connect(self.TaskDialog_add)
         self.ui.taskadd.setIcon(self.task_add_icon)
         self.ui.m_tasklist.triggered.connect(self.getTaskList)
         self.ui.m_tasklist.setIcon(self.common_list_icon)
@@ -82,11 +82,25 @@ class MainUI(QtGui.QMainWindow):
 
         self.ui.database.triggered.connect(self.DatabaseDialog)
 
-    def TaskDialog(self):
+    def TaskDialog_add(self):
         from ui import TaskUI
         Dialog = TaskUI(u'添加任务', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
             self.getTaskList()
+
+    def TaskDialog_edit(self):
+        item, taskid = self.getCurrentTask()
+        if taskid>0:
+            from ui import TaskUI
+            Dialog = TaskUI(u'修改任务', self, taskid)
+            if Dialog.exec_() == QtGui.QDialog.Accepted:
+                self.getTaskList()
+        else:
+            self.getTaskList()
+
+    def TaskDialog_delete(self):
+        item, taskid = self.getCurrentTask()
+        print taskid
 
     def RobotDialog(self):
         from ui import RobotUI
@@ -134,13 +148,11 @@ class MainUI(QtGui.QMainWindow):
         return _G
 
     def setMainListMenu(self):
-        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-
         # task
         self.taskMenu = QtGui.QMenu()
-        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加", self, triggered=self.TaskDialog, shortcut="Ctrl+N")
-        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
-        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
+        self.taskAdd    = QtGui.QAction(self.task_add_icon, u"添加", self, triggered=self.TaskDialog_add, shortcut="Ctrl+N")
+        self.taskEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self, triggered=self.TaskDialog_edit)
+        self.taskDelete = QtGui.QAction(self.common_del_icon, u"删除", self, triggered=self.TaskDialog_delete)
         self.separator  = QtGui.QAction(self)
         self.separator.setSeparator(True)
         self.taskStart  = QtGui.QAction(u"立即执行", self, triggered=self.manualStart)
@@ -163,7 +175,7 @@ class MainUI(QtGui.QMainWindow):
         self.robotMenu.addAction(self.robotEdit)
         self.robotMenu.addAction(self.robotDelete)
 
-        # connect signal
+        self.ui.mainlist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.ui.mainlist.customContextMenuRequested.connect(self.updateMainListMenu)
 
     def setHeaderMainList(self, header):
@@ -241,25 +253,33 @@ class MainUI(QtGui.QMainWindow):
         self.task_robot = robot
 
     def updateMainListMenu(self, point):
-        item = self.ui.mainlist.currentItem()
-        #print item
-        if not item==None:
+        '''show ContextMenu'''
+        index = self.ui.mainlist.indexAt(point)
+        if not index.isValid():
+            self.ui.mainlist.clearSelection()
+            self.taskEdit.setDisabled(True)
+            self.taskDelete.setDisabled(True)
+            self.taskStart.setDisabled(True)
+            self.taskStop.setDisabled(True)
+
+            self.robotEdit.setDisabled(True)
+            self.robotDelete.setDisabled(True)
+        else:
+            item = self.ui.mainlist.itemAt(point)
             state = Func._variantConv(item.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
-            print type(state), state
             if state==Task_Flag_Waiting:
                 self.taskEdit.setDisabled(False)
                 self.taskDelete.setDisabled(False)
                 self.taskStart.setDisabled(False)
+                self.taskStop.setDisabled(True)
             elif state==Task_Flag_Runing:
                 self.taskStart.setDisabled(True)
                 self.taskStop.setDisabled(False)
             else:
                 self.taskStart.setDisabled(False)
-        else:
-            self.taskEdit.setDisabled(True)
-            self.taskDelete.setDisabled(True)
-            self.taskStart.setDisabled(True)
-            self.taskStop.setDisabled(True)
+
+            self.robotEdit.setDisabled(False)
+            self.robotDelete.setDisabled(False)
 
         if self.task_list:
             self.taskMenu.exec_(QtGui.QCursor.pos())
@@ -276,7 +296,6 @@ class MainUI(QtGui.QMainWindow):
         curState = Func._variantConv(taskItem.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
         if curState==state:
             return
-        #taskItem.setIcon(self.task_state_col, QtGui.QIcon('icons/loading.gif'))
         stateIcon = {Task_Flag_Waiting: self.task_state_wait, Task_Flag_Runing: self.task_state_run, Task_Flag_Stoped: self.task_state_stop, Task_Flag_Failed: self.task_state_failed}
         taskItem.setIcon(self.task_state_col, QtGui.QIcon(stateIcon[state]))
         taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(state))

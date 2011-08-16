@@ -17,12 +17,13 @@ from ui_task import Ui_TaskDialog
 from ui_database import Ui_DatabaseDialog
 
 class TaskUI(QtGui.QDialog):
-    def __init__(self, title, parent):
+    def __init__(self, title, parent, taskid=0):
         super(TaskUI, self).__init__(parent)
 
         self.ui = Ui_TaskDialog()
         self.ui.setupUi(self)
         self.parent = parent
+        self.taskid = taskid
 
         self.setWindowTitle(title)
         self.ui.runtime.setMinimumDateTime(QtCore.QDateTime.currentDateTime())
@@ -34,8 +35,28 @@ class TaskUI(QtGui.QDialog):
         self.taskname = None
         self.robotid = self.isloop = self.loopperiod = self.runtime = 0
 
-        self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.SelectRobot)
+        # if edit
+        self.setTaskInfo()
+
         self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
+
+    def setTaskInfo(self):
+        if self.taskid>0:
+            taskinfo = self.parent.taskList[self.taskid]['taskinfo']
+            taskname = taskinfo['taskname']
+            robotid = taskinfo['robotid']
+            isloop = (taskinfo['loop']==1 and [True] or [False])[0]
+            loopperiod = taskinfo['loopperiod']
+            runtime = Func.fromTimestamp(taskinfo['runtime'])
+
+            self.ui.taskname.setText(taskname)
+            robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
+            self.ui.robotid.setCurrentIndex(robotIndex)
+            self.ui.isloop.setChecked(isloop)
+            self.ui.loopperiod.setValue(loopperiod)
+            runtime = QtCore.QDateTime.fromString(QtCore.QString(runtime), 'yyyy-MM-dd hh:mm:ss')
+            self.ui.runtime.setMinimumDateTime(runtime)
+            self.ui.runtime.setDateTime(runtime)
 
     def getRobotList(self):
         try:
@@ -47,18 +68,21 @@ class TaskUI(QtGui.QDialog):
         except:
             self.parent.ui.statusbar.showMessage(u'* 数据库链接错误.')
 
-    def SelectRobot(self, index):
-        self.robotid = Func._variantConv(self.ui.robotid.itemData(index), 'string')
-
     def verify(self):
-        self.taskname   = Func.toStr(self.ui.taskname.text())
-        self.robotid    = int(Func.toStr(self.robotid))
-        self.isloop     = (self.ui.isloop.isChecked() and [1] or [0])[0]
-        self.loopperiod = self.ui.loopperiod.value()
-        self.runtime    = Func.toTimestamp(self.ui.runtime.dateTime())
-        if self.taskname and self.robotid:
+        taskname   = Func.toStr(self.ui.taskname.text())
+        robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'string')
+        robotid    = Func.toStr(robotid)
+        isloop     = str((self.ui.isloop.isChecked() and [1] or [0])[0])
+        loopperiod = str(self.ui.loopperiod.value())
+        runtime    = str(Func.toTimestamp(self.ui.runtime.dateTime()))
+        print type(taskname), type(robotid), type(isloop), type(loopperiod), type(runtime)
+        if taskname and robotid:
             _G = self.parent.getConnection()
-            _G['DB'].insert('pre_robots_task', robotid=self.robotid, taskname=self.taskname, loop=self.isloop, loopperiod=self.loopperiod, runtime=self.runtime)
+            if self.taskid>0:
+                _G['DB'].update('pre_robots_task', robotid=robotid, taskname=taskname, loop=isloop, loopperiod=loopperiod, runtime=runtime)
+                #_G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (timestamp, taskid))
+            else:
+                _G['DB'].insert('pre_robots_task', robotid=robotid, taskname=taskname, loop=isloop, loopperiod=loopperiod, runtime=runtime)
             self.accept()
 
 
