@@ -54,6 +54,7 @@ class DummySpider:
 
         if len(execSQL)>0:
             try:
+                execSQL = execSQL.replace('%', '%%')
                 conn = self.parent.getConnection()
                 DB = ((conn.has_key('DB') and conn['DB'] is not None) and \
                     [conn['DB']] or [None])[0]

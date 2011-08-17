@@ -69,20 +69,17 @@ class TaskUI(QtGui.QDialog):
             self.parent.ui.statusbar.showMessage(u'* 数据库链接错误.')
 
     def verify(self):
-        taskname   = Func.toStr(self.ui.taskname.text())
-        robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'string')
-        robotid    = Func.toStr(robotid)
-        isloop     = str((self.ui.isloop.isChecked() and [1] or [0])[0])
-        loopperiod = str(self.ui.loopperiod.value())
-        runtime    = str(Func.toTimestamp(self.ui.runtime.dateTime()))
-        print type(taskname), type(robotid), type(isloop), type(loopperiod), type(runtime)
+        taskname    = Func.toStr(self.ui.taskname.text())
+        robotid     = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
+        isloop      = (self.ui.isloop.isChecked() and [1] or [0])[0]
+        loopperiod  = self.ui.loopperiod.value()
+        runtime     = Func.toTimestamp(self.ui.runtime.dateTime())
         if taskname and robotid:
             _G = self.parent.getConnection()
             if self.taskid>0:
-                _G['DB'].update('pre_robots_task', robotid=robotid, taskname=taskname, loop=isloop, loopperiod=loopperiod, runtime=runtime)
-                #_G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (timestamp, taskid))
+                _G['DB'].execute("UPDATE `pre_robots_task` SET `robotid`=%d, `taskname`='%s', `loop`=%d, `loopperiod`=%d, `runtime`=%d, `nextruntime`=0 WHERE `taskid` = '%d'" % (robotid, taskname, isloop, loopperiod, runtime, self.taskid))
             else:
-                _G['DB'].insert('pre_robots_task', robotid=robotid, taskname=taskname, loop=isloop, loopperiod=loopperiod, runtime=runtime)
+                _G['DB'].insert('pre_robots_task', robotid=robotid, taskname=taskname, loop=isloop, loopperiod=loopperiod, runtime=runtime, nextruntime=0)
             self.accept()
 
 

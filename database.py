@@ -203,7 +203,6 @@ class Connection(object):
 
     def _execute(self, cursor, query, parameters):
         try:
-            query = query.replace('%', '%%')
             return cursor.execute(query, parameters)
         except OperationalError:
             logging.error("Error connecting to MySQL on %s", self.host)

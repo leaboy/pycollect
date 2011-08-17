@@ -100,7 +100,10 @@ class MainUI(QtGui.QMainWindow):
 
     def TaskDialog_delete(self):
         item, taskid = self.getCurrentTask()
-        print taskid
+        if _G['conn']==None:
+            self.getConnection()
+        _G['DB'].execute("DELETE FROM `pre_robots_task` WHERE `taskid` = '%d'" % taskid)
+        self.getTaskList()
 
     def RobotDialog(self):
         from ui import RobotUI
@@ -276,6 +279,8 @@ class MainUI(QtGui.QMainWindow):
                 self.taskStart.setDisabled(True)
                 self.taskStop.setDisabled(False)
             else:
+                self.taskEdit.setDisabled(False)
+                self.taskDelete.setDisabled(False)
                 self.taskStart.setDisabled(False)
 
             self.robotEdit.setDisabled(False)
