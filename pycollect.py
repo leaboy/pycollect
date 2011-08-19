@@ -16,7 +16,8 @@ import simplejson
 
 from iniFile import IniFile
 from common import Func
-from database import Connection
+from models import Robot, Task, Session
+
 
 from PyQt4 import QtCore, QtGui
 from ui_main import Ui_MainWindow
@@ -122,34 +123,6 @@ class MainUI(QtGui.QMainWindow):
             self.ui.statusbar.clearMessage()
             self.getTaskList()
 
-    def iniDatabaseConn(self):
-        _G['dbhost']    = ini.get("database","dbhost")
-        _G['dbhost']    = (_G['dbhost']==None and [''] or [_G['dbhost']])[0]
-        _G['dbname']    = ini.get("database","dbname")
-        _G['dbname']    = (_G['dbname']==None and [''] or [_G['dbname']])[0]
-        _G['dbuser']    = ini.get("database","dbuser")
-        _G['dbuser']    = (_G['dbuser']==None and [''] or [_G['dbuser']])[0]
-        _G['dbpw']      = ini.get("database","dbpw")
-        _G['dbpw']      = (_G['dbpw']==None and [''] or [_G['dbpw']])[0]
-
-        if _G['dbhost'] and _G['dbname'] and _G['dbuser'] and _G['dbpw'] is not None:
-            self.getConnection()
-
-        if _G['conn']==None:
-            _G['DB'] = _G['conn'] = None
-            self.ui.statusbar.showMessage(u'* 数据库链接错误.')
-            self.DatabaseDialog()
-        else:
-            Mainapp.getTaskList()
-
-    def getConnection(self):
-        if _G['conn']==None:
-            conn = Connection(host=_G['dbhost'],database=_G['dbname'],user=_G['dbuser'],password=_G['dbpw'])
-            if conn and conn._db is not None:
-                _G['DB'] = conn
-                _G['conn'] = conn._db
-        return _G
-
     def setMainListMenu(self):
         # task
         self.taskMenu = QtGui.QMenu()
@@ -190,23 +163,20 @@ class MainUI(QtGui.QMainWindow):
 
     def getTaskList(self):
         self.updateMainListFlag(True, False)
-
-        if _G['conn']==None:
-            return
-
         itemList = []
         self.setHeaderMainList([u'任务名称', u'采集器', u'循环', u'执行时间', u'下次执行时间', u'状态'])
         self.task_state_col = self.ui.mainlist.columnCount()-1
         self.task_nextruntime_col = self.task_state_col-1
-
-        taskList = _G['DB'].query("SELECT t.taskid,t.robotid,t.taskname,t.loop,t.loopperiod,t.runtime,t.nextruntime, r.* FROM `pre_robots_task` t LEFT JOIN `pre_robots` r ON t.robotid = r.robotid ORDER BY t.taskid")
+        session = Session()
+        taskList = session.query(Task).outerjoin(Robot, Task.robotid==Robot.robotid).all()
         for i in taskList:
-            taskid  = i['taskid']
-            isloop  = (i['loop']==1 and [self.yesstr] or [self.nostr])[0]
-            runtime = Func.fromTimestamp(i['runtime'])
-            nextruntime = (i['nextruntime'] and [Func.fromTimestamp(i['nextruntime'])] or ['-'])[0]
+            taskid  = i.taskid
+            isloop  = (i.loop==1 and [self.yesstr] or [self.nostr])[0]
+            runtime = Func.fromTimestamp(i.runtime)
+            nextruntime = (i.nextruntime and [Func.fromTimestamp(i.nextruntime)] or ['-'])[0]
+            robotname = (hasattr(i, 'robotname') and [i.robotname] or ['-'])[0]
 
-            taskItem = QtGui.QTreeWidgetItem([i['taskname'], i['name'], isloop, runtime, nextruntime])
+            taskItem = QtGui.QTreeWidgetItem([i.taskname, robotname, isloop, runtime, nextruntime])
             taskItem.setIcon(self.task_state_col, QtGui.QIcon(self.task_state_wait))
             taskItem.setIcon(self.task_id_col, self.task_icon)
             taskItem.setData(self.task_id_col, QtCore.Qt.UserRole, QtCore.QVariant(taskid))
@@ -236,19 +206,16 @@ class MainUI(QtGui.QMainWindow):
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
-
-        if _G['conn']==None:
-            return
-
         self.setHeaderMainList([u'采集器名称', u'匹配模式', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式'])
-        robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
+        session = Session()
+        robotList = session.query(Robot).all()
         for i in robotList:
-            i['speed']          = str(i['speed'])
-            i['threads']        = str(i['threads'])
-            i['reverseorder']   = (i['reverseorder'] and [self.yesstr] or [self.nostr])[0]
-            i['linkmode']       = (i['linkmode'] and [self.yesstr] or [self.nostr])[0]
-            i['downloadmode']   = (i['downloadmode'] and [self.yesstr] or [self.nostr])[0]
-            robotItem = QtGui.QTreeWidgetItem([i['name'], i['rulemode'], i['speed'], i['threads'], i['reverseorder'], i['linkmode'], i['downloadmode']])
+            timeout         = str(i.timeout)
+            threads         = str(i.threads)
+            reversemode     = (i.reversemode and [self.yesstr] or [self.nostr])[0]
+            linkmode        = (i.linkmode and [self.yesstr] or [self.nostr])[0]
+            downloadmode    = (i.downloadmode and [self.yesstr] or [self.nostr])[0]
+            robotItem = QtGui.QTreeWidgetItem([i.robotname, i.rulemode, timeout, threads, reversemode, linkmode, downloadmode])
             self.ui.mainlist.addTopLevelItem(robotItem)
 
     def updateMainListFlag(self, task=True, robot=False):
@@ -296,7 +263,7 @@ class MainUI(QtGui.QMainWindow):
         if not self.task_list:
             return
         taskList = self.taskList[taskid]
-        isloop = taskList['taskinfo']['loop']
+        isloop = taskList['taskinfo'].loop
         taskItem = taskList['item']
         curState = Func._variantConv(taskItem.data(self.task_state_col, QtCore.Qt.UserRole), 'int')
         if curState==state:
@@ -314,7 +281,10 @@ class MainUI(QtGui.QMainWindow):
         '''change nextruntime item'''
         if not self.task_list:
             return
-        _G['DB'].execute("UPDATE `pre_robots_task` SET `nextruntime` = '%d' WHERE `pre_robots_task`.`taskid` = '%d'" % (timestamp, taskid))
+        session = Session()
+        task = session.query(Task).filter(Task.taskid==taskid).first()
+        task.nextruntime = timestamp
+        session.commit()
         self.taskList[taskid]['item'].setText(self.task_nextruntime_col, Func.fromTimestamp(timestamp))
 
     def runThread(self, taskid):
@@ -380,7 +350,7 @@ class MainUI(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
-    _G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
+    #_G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
     ini = IniFile("config.cfg", True)
 
     app = QtGui.QApplication(sys.argv)
@@ -390,6 +360,7 @@ if __name__ == "__main__":
     Mainapp.show()
 
     # init database connection
-    Mainapp.iniDatabaseConn()
+    #Mainapp.iniDatabaseConn()
+    Mainapp.getTaskList()
 
     sys.exit(app.exec_())

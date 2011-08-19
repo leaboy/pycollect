@@ -23,12 +23,12 @@ class RunTask(QtCore.QThread):
         self.stoped = True
 
     def run(self):
-        taskid      = self.taskinfo['taskid']
-        robotid     = self.taskinfo['robotid']
-        isloop      = self.taskinfo['loop']
-        loopperiod  = self.taskinfo['loopperiod']
-        runtime     = self.taskinfo['runtime']
-        nextruntime = self.taskinfo['nextruntime']
+        taskid      = self.taskinfo.taskid
+        robotid     = self.taskinfo.robotid
+        isloop      = self.taskinfo.loop
+        loopperiod  = self.taskinfo.loopperiod
+        runtime     = self.taskinfo.runtime
+        nextruntime = self.taskinfo.nextruntime
 
         while True:
             if self.stoped:

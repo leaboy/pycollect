@@ -9,7 +9,7 @@
 # GNU Free Documentation License 1.3
 
 from common import Func
-from database import Connection
+from models import Robot, Task, Session
 
 from PyQt4 import QtCore, QtGui
 from ui_robot import Ui_RobotDialog
@@ -43,11 +43,11 @@ class TaskUI(QtGui.QDialog):
     def setTaskInfo(self):
         if self.taskid>0:
             taskinfo = self.parent.taskList[self.taskid]['taskinfo']
-            taskname = taskinfo['taskname']
-            robotid = taskinfo['robotid']
-            isloop = (taskinfo['loop']==1 and [True] or [False])[0]
-            loopperiod = taskinfo['loopperiod']
-            runtime = Func.fromTimestamp(taskinfo['runtime'])
+            taskname = taskinfo.taskname
+            robotid = taskinfo.robotid
+            isloop = (taskinfo.loop==1 and [True] or [False])[0]
+            loopperiod = taskinfo.loopperiod
+            runtime = Func.fromTimestamp(taskinfo.runtime)
 
             self.ui.taskname.setText(taskname)
             robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -60,26 +60,35 @@ class TaskUI(QtGui.QDialog):
 
     def getRobotList(self):
         try:
-            _G = self.parent.getConnection()
-            robotList = _G['DB'].query("SELECT * FROM `pre_robots` ORDER BY robotid")
+            session = Session()
+            robotList = session.query(Robot).all()
             self.ui.robotid.addItem(u'-选择采集方案-', QtCore.QVariant(0))
             for i in robotList:
-                self.ui.robotid.addItem(i['name'], QtCore.QVariant(i['robotid']))
+                self.ui.robotid.addItem(i.robotname, QtCore.QVariant(i.robotid))
         except:
-            self.parent.ui.statusbar.showMessage(u'* 数据库链接错误.')
+            self.parent.ui.statusbar.showMessage(u'* 读取列表数据出错了.')
 
     def verify(self):
-        taskname    = Func.toStr(self.ui.taskname.text())
-        robotid     = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
-        isloop      = (self.ui.isloop.isChecked() and [1] or [0])[0]
-        loopperiod  = self.ui.loopperiod.value()
-        runtime     = Func.toTimestamp(self.ui.runtime.dateTime())
+        robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
+        taskname = Func.toStr(self.ui.taskname.text())
+
         if taskname and robotid:
-            _G = self.parent.getConnection()
+            session = Session()
             if self.taskid>0:
-                _G['DB'].execute("UPDATE `pre_robots_task` SET `robotid`=%d, `taskname`='%s', `loop`=%d, `loopperiod`=%d, `runtime`=%d, `nextruntime`=0 WHERE `taskid` = '%d'" % (robotid, taskname, isloop, loopperiod, runtime, self.taskid))
+                task = session.query(Task).filter(Task.taskid==self.taskid).first()
+                task.robotid = robotid
+                task.taskname = taskname
             else:
-                _G['DB'].insert('pre_robots_task', robotid=robotid, taskname=taskname, loop=isloop, loopperiod=loopperiod, runtime=runtime, nextruntime=0)
+                task = Task(robotid, taskname)
+            task.loop = (self.ui.isloop.isChecked() and [1] or [0])[0]
+            task.loopperiod = self.ui.loopperiod.value()
+            task.runtime = Func.toTimestamp(self.ui.runtime.dateTime())
+            task.nextruntime = 0
+
+            if not self.taskid>0:
+                session.add(task)
+
+            session.commit()
             self.accept()
 
 
@@ -97,30 +106,35 @@ class RobotUI(QtGui.QDialog):
 
     def verify(self):
         robotname       = Func.toStr(self.ui.robotname.text())
-        speed           = self.ui.speed.value()
-        threads         = self.ui.threads.value()
         autourl         = Func.toStr(self.ui.autourl.text())
-        listpagestart   = self.ui.listpagestart.value()
-        listpageend     = self.ui.listpageend.value()
-        wildcardlen     = self.ui.wildcardlen.value()
         manualurl       = Func.toStr(self.ui.manualurl.toPlainText())
-        stockdata       = Func.toStr(self.ui.stockdata.text())
+
         rule_mode_xpath = (self.ui.rule_mode_xpath.isChecked() and [1] or [0])[0]
         rule_mode_regex = (self.ui.rule_mode_regex.isChecked() and [1] or [0])[0]
-        rulemode        = (rule_mode_xpath==1 and ['xpath'] or ['regex'])[0]
-        subjecturlrule  = Func.toStr(self.ui.subjecturlrule.toPlainText())
-        subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.toPlainText())
-        subjectrule     = Func.toStr(self.ui.subjectrule.toPlainText())
-        messagerule     = Func.toStr(self.ui.messagerule.toPlainText())
-        reverseorder    = (self.ui.reverseorder.isChecked() and [1] or [0])[0]
-        linkmode        = (self.ui.linkmode.isChecked() and [1] or [0])[0]
-        downloadmode    = (self.ui.downloadmode.isChecked() and [1] or [0])[0]
-        importSQL       = Func.toStr(self.ui.importSQL.toPlainText())
+
         # serialize listurl to json
         listurl = Func.serializeListUrl(autourl, manualurl)
+
         if robotname and (autourl or manualurl):
-            _G = self.parent.getConnection()
-            _G['DB'].insert('pre_robots', name=robotname, speed=speed, threads=threads, listurl=listurl, stockdata=stockdata, listpagestart=listpagestart, listpageend=listpageend, wildcardlen=wildcardlen, reverseorder=reverseorder, rulemode=rulemode, subjecturlrule=subjecturlrule, subjecturllinkrule=subjecturllinkrule, subjectrule=subjectrule, messagerule=messagerule, linkmode=linkmode, downloadmode=downloadmode, importSQL=importSQL)
+            session = Session()
+            robot = Robot(robotname, listurl)
+            robot.timeout = self.ui.speed.value()
+            robot.threads = self.ui.threads.value()
+            robot.stockdata = Func.toStr(self.ui.stockdata.text())
+            robot.listpagestart = self.ui.listpagestart.value()
+            robot.listpageend = self.ui.listpageend.value()
+            robot.wildcardlen = self.ui.wildcardlen.value()
+            robot.subjecturlrule = Func.toStr(self.ui.subjecturlrule.toPlainText())
+            robot.subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.toPlainText())
+            robot.subjectrule = Func.toStr(self.ui.subjectrule.toPlainText())
+            robot.messagerule = Func.toStr(self.ui.messagerule.toPlainText())
+            robot.reversemode = (self.ui.reverseorder.isChecked() and [1] or [0])[0]
+            robot.rulemode = (rule_mode_xpath==1 and ['xpath'] or ['regex'])[0]
+            robot.linkmode = (self.ui.linkmode.isChecked() and [1] or [0])[0]
+            robot.downloadmode = (self.ui.downloadmode.isChecked() and [1] or [0])[0]
+
+            session.add(robot)
+            session.commit()
             self.accept()
 
 
