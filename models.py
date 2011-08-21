@@ -56,7 +56,7 @@ class Task(Base):
     dbconn      = Column(String(200))
     importSQL   = Column(Text)
 
-    #robotinfo   = relationship(Robot, backref=backref('tasks', order_by=robotid))
+    robotinfo = relationship(Robot, backref = backref("tasks", foreign_keys=robotid))
 
     def __init__(self, robotid, taskname):
         self.robotid   = robotid
@@ -71,19 +71,3 @@ tasks_table = Task.__table__
 
 sys_engine = create_engine('sqlite:///sys.db', echo=True)
 Session = scoped_session(sessionmaker(bind=sys_engine))
-
-
-if __name__ == "__main__":
-    metadata.create_all(sys_engine)
-
-    '''
-    session = Session()
-    task = Task(111, 'Test task11')
-
-    #task.loop = 1
-    #session.add(task)
-    #session.commit()
-
-    for t in session.query(Task).all():
-        print t.loop
-    '''

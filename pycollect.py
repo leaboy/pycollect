@@ -16,7 +16,7 @@ import simplejson
 
 from iniFile import IniFile
 from common import Func
-from models import Robot, Task, Session
+from models import Robot, Task, Session, metadata, sys_engine
 
 
 from PyQt4 import QtCore, QtGui
@@ -81,8 +81,6 @@ class MainUI(QtGui.QMainWindow):
         self.ui.m_robotlist.setIcon(self.common_list_icon)
         self.ui.mquit.triggered.connect(QtGui.qApp.quit)
 
-        self.ui.database.triggered.connect(self.DatabaseDialog)
-
     def TaskDialog_add(self):
         from ui import TaskUI
         Dialog = TaskUI(u'添加任务', self)
@@ -101,9 +99,11 @@ class MainUI(QtGui.QMainWindow):
 
     def TaskDialog_delete(self):
         item, taskid = self.getCurrentTask()
-        if _G['conn']==None:
-            self.getConnection()
-        _G['DB'].execute("DELETE FROM `pre_robots_task` WHERE `taskid` = '%d'" % taskid)
+        self.stopThread(taskid)
+        session = Session()
+        task = session.query(Task).filter(Task.taskid==taskid).first()
+        session.delete(task)
+        session.commit()
         self.getTaskList()
 
     def RobotDialog(self):
@@ -111,17 +111,6 @@ class MainUI(QtGui.QMainWindow):
         Dialog = RobotUI(u'添加采集器', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
             self.getRobotList()
-
-    def DatabaseDialog(self, flag=False):
-        from ui import DatabaseUI
-        Dialog = DatabaseUI(u'数据库配置', flag, self)
-        if Dialog.exec_() == QtGui.QDialog.Accepted:
-            ini.set("database", "dbhost", _G['dbhost'])
-            ini.set("database", "dbname", _G['dbname'])
-            ini.set("database", "dbuser", _G['dbuser'])
-            ini.set("database", "dbpw", _G['dbpw'])
-            self.ui.statusbar.clearMessage()
-            self.getTaskList()
 
     def setMainListMenu(self):
         # task
@@ -174,7 +163,7 @@ class MainUI(QtGui.QMainWindow):
             isloop  = (i.loop==1 and [self.yesstr] or [self.nostr])[0]
             runtime = Func.fromTimestamp(i.runtime)
             nextruntime = (i.nextruntime and [Func.fromTimestamp(i.nextruntime)] or ['-'])[0]
-            robotname = (hasattr(i, 'robotname') and [i.robotname] or ['-'])[0]
+            robotname = (hasattr(i, 'robotinfo') and [i.robotinfo.robotname] or ['-'])[0]
 
             taskItem = QtGui.QTreeWidgetItem([i.taskname, robotname, isloop, runtime, nextruntime])
             taskItem.setIcon(self.task_state_col, QtGui.QIcon(self.task_state_wait))
@@ -350,7 +339,7 @@ class MainUI(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
-    #_G = {'DB': None, 'conn': None, 'dbhost':'', 'dbname':'', 'dbuser':'', 'dbpw':''}
+    metadata.create_all(sys_engine)
     ini = IniFile("config.cfg", True)
 
     app = QtGui.QApplication(sys.argv)
