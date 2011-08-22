@@ -58,7 +58,7 @@ class MainUI(QtGui.QMainWindow):
         self.common_edit_icon   = QtGui.QIcon('icons/common_edit.png')
         self.common_del_icon    = QtGui.QIcon('icons/common_delete.png')
 
-        self.task_id_col = self.task_state_col = self.task_nextruntime_col = 0
+        self.id_col = self.task_state_col = self.task_nextruntime_col = 0
 
         # mainlist menu
         self.setMainListMenu()
@@ -75,7 +75,7 @@ class MainUI(QtGui.QMainWindow):
         self.ui.taskadd.setIcon(self.task_add_icon)
         self.ui.m_tasklist.triggered.connect(self.getTaskList)
         self.ui.m_tasklist.setIcon(self.common_list_icon)
-        self.ui.robotadd.triggered.connect(self.RobotDialog)
+        self.ui.robotadd.triggered.connect(self.RobotDialog_add)
         self.ui.robotadd.setIcon(self.robot_add_icon)
         self.ui.m_robotlist.triggered.connect(self.getRobotList)
         self.ui.m_robotlist.setIcon(self.common_list_icon)
@@ -88,7 +88,7 @@ class MainUI(QtGui.QMainWindow):
             self.getTaskList()
 
     def TaskDialog_edit(self):
-        item, taskid = self.getCurrentTask()
+        item, taskid = self.getCurrentItem()
         if taskid>0:
             from ui import TaskUI
             Dialog = TaskUI(u'修改任务', self, taskid)
@@ -98,7 +98,7 @@ class MainUI(QtGui.QMainWindow):
             self.getTaskList()
 
     def TaskDialog_delete(self):
-        item, taskid = self.getCurrentTask()
+        item, taskid = self.getCurrentItem()
         self.stopThread(taskid)
         session = Session()
         task = session.query(Task).filter(Task.taskid==taskid).first()
@@ -106,11 +106,30 @@ class MainUI(QtGui.QMainWindow):
         session.commit()
         self.getTaskList()
 
-    def RobotDialog(self):
+    def RobotDialog_add(self):
         from ui import RobotUI
         Dialog = RobotUI(u'添加采集器', self)
         if Dialog.exec_() == QtGui.QDialog.Accepted:
             self.getRobotList()
+
+    def RobotDialog_edit(self):
+        item, robotid = self.getCurrentItem()
+        if robotid>0:
+            from ui import RobotUI
+            Dialog = RobotUI(u'修改任务', self, robotid)
+            if Dialog.exec_() == QtGui.QDialog.Accepted:
+                self.getRobotList()
+        else:
+            self.getRobotList()
+
+    def RobotDialog_delete(self):
+        item, robotid = self.getCurrentItem()
+        if robotid>0:
+            session = Session()
+            robot = session.query(Robot).filter(Robot.robotid==robotid).first()
+            session.delete(robot)
+            session.commit()
+        self.getRobotList()
 
     def setMainListMenu(self):
         # task
@@ -132,9 +151,9 @@ class MainUI(QtGui.QMainWindow):
 
         # robot
         self.robotMenu = QtGui.QMenu()
-        self.robotAdd    = QtGui.QAction(self.robot_add_icon, u"添加", self, triggered=self.RobotDialog, shortcut="Ctrl+N")
-        self.robotEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self)
-        self.robotDelete = QtGui.QAction(self.common_del_icon, u"删除", self)
+        self.robotAdd    = QtGui.QAction(self.robot_add_icon, u"添加", self, triggered=self.RobotDialog_add, shortcut="Ctrl+N")
+        self.robotEdit   = QtGui.QAction(self.common_edit_icon, u"修改", self, triggered=self.RobotDialog_edit)
+        self.robotDelete = QtGui.QAction(self.common_del_icon, u"删除", self, triggered=self.RobotDialog_delete)
 
         self.robotMenu.addAction(self.robotAdd)
         self.robotMenu.addAction(self.robotEdit)
@@ -156,6 +175,11 @@ class MainUI(QtGui.QMainWindow):
         self.setHeaderMainList([u'任务名称', u'采集器', u'循环', u'执行时间', u'下次执行时间', u'状态'])
         self.task_state_col = self.ui.mainlist.columnCount()-1
         self.task_nextruntime_col = self.task_state_col-1
+        self.ui.mainlist.setColumnWidth(0, 120)
+        self.ui.mainlist.setColumnWidth(1, 120)
+        self.ui.mainlist.setColumnWidth(2, 50)
+        self.ui.mainlist.setColumnWidth(3, 140)
+        self.ui.mainlist.setColumnWidth(4, 140)
         session = Session()
         taskList = session.query(Task).outerjoin(Robot, Task.robotid==Robot.robotid).all()
         for i in taskList:
@@ -167,35 +191,45 @@ class MainUI(QtGui.QMainWindow):
 
             taskItem = QtGui.QTreeWidgetItem([i.taskname, robotname, isloop, runtime, nextruntime])
             taskItem.setIcon(self.task_state_col, QtGui.QIcon(self.task_state_wait))
-            taskItem.setIcon(self.task_id_col, self.task_icon)
-            taskItem.setData(self.task_id_col, QtCore.Qt.UserRole, QtCore.QVariant(taskid))
+            taskItem.setIcon(self.id_col, self.task_icon)
+            taskItem.setData(self.id_col, QtCore.Qt.UserRole, QtCore.QVariant(taskid))
             taskItem.setData(self.task_state_col, QtCore.Qt.UserRole, QtCore.QVariant(Task_Flag_Waiting))
+            taskItem.setTextAlignment(1, QtCore.Qt.AlignHCenter)
             taskItem.setTextAlignment(2, QtCore.Qt.AlignHCenter)
+            taskItem.setTextAlignment(3, QtCore.Qt.AlignHCenter)
+            taskItem.setTextAlignment(4, QtCore.Qt.AlignHCenter)
             self.ui.mainlist.addTopLevelItem(taskItem)
 
             # start task thread
             self.taskList[taskid] = {'item': taskItem, 'taskinfo': i}
             self.runThread(taskid)
 
-    def getCurrentTask(self):
+    def getCurrentItem(self):
         item = self.ui.mainlist.currentItem()
-        return item, Func._variantConv(item.data(self.task_id_col, QtCore.Qt.UserRole), 'int')
+        return item, Func._variantConv(item.data(self.id_col, QtCore.Qt.UserRole), 'int')
 
     def manualStart(self):
         '''executed task Immediately'''
-        item, taskid = self.getCurrentTask()
+        item, taskid = self.getCurrentItem()
         self.updateTaskState(Task_Flag_Runing, taskid)
         if not self.threadList.has_key(taskid):
             self.runThread(taskid)
 
     def manualStop(self):
         '''stopped task Immediately'''
-        item, taskid = self.getCurrentTask()
+        item, taskid = self.getCurrentItem()
         self.stopCrawl(taskid, Task_Flag_Failed)
 
     def getRobotList(self):
         self.updateMainListFlag(False, True)
-        self.setHeaderMainList([u'采集器名称', u'匹配模式', u'延迟', u'线程', u'倒序模式', u'列表模式', u'下载模式'])
+        self.setHeaderMainList([u'采集器名称', u'匹配模式', u'超时', u'线程', u'倒序模式', u'列表模式', u'下载模式'])
+        self.ui.mainlist.setColumnWidth(0, 150)
+        self.ui.mainlist.setColumnWidth(1, 80)
+        self.ui.mainlist.setColumnWidth(2, 60)
+        self.ui.mainlist.setColumnWidth(3, 60)
+        self.ui.mainlist.setColumnWidth(4, 80)
+        self.ui.mainlist.setColumnWidth(5, 80)
+        self.ui.mainlist.setColumnWidth(6, 80)
         session = Session()
         robotList = session.query(Robot).all()
         for i in robotList:
@@ -205,6 +239,14 @@ class MainUI(QtGui.QMainWindow):
             linkmode        = (i.linkmode and [self.yesstr] or [self.nostr])[0]
             downloadmode    = (i.downloadmode and [self.yesstr] or [self.nostr])[0]
             robotItem = QtGui.QTreeWidgetItem([i.robotname, i.rulemode, timeout, threads, reversemode, linkmode, downloadmode])
+            robotItem.setIcon(self.id_col, self.robot_icon)
+            robotItem.setData(self.id_col, QtCore.Qt.UserRole, QtCore.QVariant(i.robotid))
+            robotItem.setTextAlignment(1, QtCore.Qt.AlignHCenter)
+            robotItem.setTextAlignment(2, QtCore.Qt.AlignHCenter)
+            robotItem.setTextAlignment(3, QtCore.Qt.AlignHCenter)
+            robotItem.setTextAlignment(4, QtCore.Qt.AlignHCenter)
+            robotItem.setTextAlignment(5, QtCore.Qt.AlignHCenter)
+            robotItem.setTextAlignment(6, QtCore.Qt.AlignHCenter)
             self.ui.mainlist.addTopLevelItem(robotItem)
 
     def updateMainListFlag(self, task=True, robot=False):
@@ -308,20 +350,9 @@ class MainUI(QtGui.QMainWindow):
 
         from run_crawl import DummySpider, RunCrawl
 
-        taskinfo = self.taskList[taskid]['taskinfo'].copy()
-        task_listurl    = taskinfo['listurl']
-        task_pagestart  = taskinfo['listpagestart']
-        task_pageend    = taskinfo['listpageend']
-        task_wildcardlen= taskinfo['wildcardlen']
-        task_stockdata  = taskinfo['stockdata']
-        task_listrule   = taskinfo['subjecturlrule']
-        task_titlerule  = taskinfo['subjectrule']
-        task_linkrule   = taskinfo['subjecturllinkrule']
-        task_contentrule= taskinfo['messagerule']
+        task = self.taskList[taskid]['taskinfo']
 
-        taskinfo['listurl'] = Func.getStartUrls(task_listurl, task_pagestart, task_pageend, task_wildcardlen, task_stockdata)
-
-        spider = DummySpider(taskinfo, self)
+        spider = DummySpider(task, self)
         t = RunCrawl(taskid, spider, self)
         self.crawlList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.stopCrawl)
@@ -339,17 +370,13 @@ class MainUI(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
+    # init database
     metadata.create_all(sys_engine)
-    ini = IniFile("config.cfg", True)
 
     app = QtGui.QApplication(sys.argv)
 
-    # show main window
     Mainapp = MainUI()
     Mainapp.show()
-
-    # init database connection
-    #Mainapp.iniDatabaseConn()
     Mainapp.getTaskList()
 
     sys.exit(app.exec_())

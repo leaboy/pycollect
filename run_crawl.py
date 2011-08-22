@@ -6,21 +6,25 @@ import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
 import time
-from common import make_xlat
+from common import Func, make_xlat
 
 class DummySpider:
-    def __init__(self, taskinfo, parent):
-        self.taskid = taskinfo['taskid']
-        self.robotid = taskinfo['robotid']
-        self.start_urls = taskinfo['listurl']
-        self.subjecturlrule = taskinfo['subjecturlrule']
-        self.subjectrule = taskinfo['subjectrule']
-        self.subjecturllinkrule   = taskinfo['subjecturllinkrule']
-        self.messagerule = taskinfo['messagerule']
-        self.importSQL = taskinfo['importSQL']
-        self.rulemode = taskinfo['rulemode']
-        self.workers = 100
-        self.timeout = 20
+    def __init__(self, task, parent):
+        self.taskid = task.taskid
+        self.robotid = task.robotid
+        self.dbconn = task.dbconn
+        self.importSQL = task.importSQL
+        robot = task.robotinfo
+        self.start_urls = Func.getStartUrls(robot.listurl, robot.listpagestart, robot.listpageend, robot.wildcardlen, robot.stockdata)
+        self.subjecturlrule = robot.subjecturlrule
+        self.subjectrule = robot.subjectrule
+        self.subjecturllinkrule   = robot.subjecturllinkrule
+        self.messagerule = robot.messagerule
+        self.rulemode = robot.rulemode
+        self.linkmode = robot.linkmode
+        self.downloadmode = robot.downloadmode
+        self.workers = robot.threads
+        self.timeout = robot.timeout
         self.parent = parent
 
     def parse(self, response):
@@ -46,7 +50,6 @@ class DummySpider:
     def process_item(self, item):
         execSQL = ''
         for i in item:
-            #adict = {'[taskid]': str(self.taskid), '[robotid]': str(self.robotid), '[link]': i['link'].encode('utf-8'), '[title]': i['title'].encode('utf-8'), '[message]': i['message'].encode('utf-8'), '[runtime]': time.mktime(time.localtime())}
             adict = {'[link]': i['link'].encode('utf-8'), '[title]': i['title'].encode('utf-8'), '[runtime]': time.mktime(time.localtime())}
             translate = make_xlat(adict)
             comma = (execSQL=='' and [''] or [';'])[0]
