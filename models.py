@@ -53,6 +53,7 @@ class Task(Base):
     loopperiod  = Column(Integer, default=86400)
     runtime     = Column(Integer, default=0)
     nextruntime = Column(Integer, default=0)
+    dbtype      = Column(String(20))
     dbconn      = Column(String(200))
     importSQL   = Column(Text)
 
@@ -69,5 +70,5 @@ class Task(Base):
 robots_table = Robot.__table__
 tasks_table = Task.__table__
 
-sys_engine = create_engine('sqlite:///sys.db', echo=True)
+sys_engine = create_engine('sqlite:///sys.db')
 Session = scoped_session(sessionmaker(bind=sys_engine))

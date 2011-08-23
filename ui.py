@@ -34,6 +34,13 @@ class TaskUI(QtGui.QDialog):
         if taskid>0:
             self.setTaskInfo()
 
+        # db set
+        self.ui.sqlite_layout.setVisible(False)
+
+        self.ui.dbtype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
+        self.ui.dbtype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
+
+        self.ui.taskSave.setEnabled(False)
         self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def setTaskInfo(self):
@@ -79,6 +86,32 @@ class TaskUI(QtGui.QDialog):
             task.loopperiod = self.ui.loopperiod.value()
             task.runtime = Func.toTimestamp(self.ui.runtime.dateTime())
             task.nextruntime = 0
+
+            dbtype, dbconn = '', {}
+            if self.ui.dbtype_sqlite.isChecked():
+                dbtype = 'sqlite'
+                dbname = Func.toStr(self.ui.sqlite_dbname.text())
+                dbhost, dbuser, dbpw = ''
+            elif self.ui.dbtype_mysql.isChecked():
+                dbtype = 'mysql'
+                dbname = Func.toStr(self.ui.mysql_dbname.text())
+                dbhost = Func.toStr(self.ui.mysql_dbhost.text())
+                dbuser = Func.toStr(self.ui.mysql_dbuser.text())
+                dbpw = Func.toStr(self.ui.mysql_dbpw.text())
+
+            from sqlalchemy import create_engine
+            from sqlalchemy.exc import OperationalError
+            try:
+                db_engine = create_engine('%s://%s:%s@%s/%s' % (dbtype, dbuser, dbpw, dbhost, dbname))
+                db_engine.connect()
+                dbconn = {'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
+                dbconn = Func.serialize(dbconn)
+            except OperationalError, e:
+                code, message = e.orig
+                print 'Error %s: %s' % (code, message)
+
+            task.dbtype = dbtype
+            task.dbconn = dbconn
 
             if not self.taskid>0:
                 session.add(task)

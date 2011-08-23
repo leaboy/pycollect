@@ -53,6 +53,18 @@ class Func:
             res = variant.toString()
         return res
 
+    def serialize(obj):
+        try:
+            return simplejson.dumps(obj)
+        except:
+            pass
+
+    def unserialize(obj):
+        try:
+            return simplejson.loads(obj)
+        except:
+            pass
+
     def searchFile(self, pattern, root=None):
         import os, fnmatch
         root = root==None and os.curdir
