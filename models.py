@@ -53,8 +53,7 @@ class Task(Base):
     loopperiod  = Column(Integer, default=86400)
     runtime     = Column(Integer, default=0)
     nextruntime = Column(Integer, default=0)
-    dbtype      = Column(String(20))
-    dbconn      = Column(String(200))
+    dbconn      = Column(Text)
     importSQL   = Column(Text)
 
     robotinfo = relationship(Robot, backref = backref("tasks", foreign_keys=robotid))

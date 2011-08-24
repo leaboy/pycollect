@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Task.ui'
 #
-# Created: Tue Aug 23 11:07:32 2011
+# Created: Wed Aug 24 10:47:54 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -97,7 +97,7 @@ class Ui_TaskDialog(object):
         sizePolicy.setHeightForWidth(self.plainTextEdit.sizePolicy().hasHeightForWidth())
         self.plainTextEdit.setSizePolicy(sizePolicy)
         self.plainTextEdit.setObjectName("plainTextEdit")
-        self.gridLayout_3.addWidget(self.plainTextEdit, 2, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.plainTextEdit, 2, 1, 1, 3)
         self.label_14 = QtGui.QLabel(self.groupBox_2)
         self.label_14.setObjectName("label_14")
         self.gridLayout_3.addWidget(self.label_14, 2, 0, 1, 1)
@@ -149,7 +149,7 @@ class Ui_TaskDialog(object):
         self.mysql_dbname.setObjectName("mysql_dbname")
         self.gridLayout_4.addWidget(self.mysql_dbname, 3, 1, 1, 1)
         self.verticalLayout_2.addWidget(self.mysql_layout)
-        self.gridLayout_3.addLayout(self.verticalLayout_2, 1, 1, 1, 1)
+        self.gridLayout_3.addLayout(self.verticalLayout_2, 1, 1, 1, 3)
         self.label_8 = QtGui.QLabel(self.groupBox_2)
         self.label_8.setObjectName("label_8")
         self.gridLayout_3.addWidget(self.label_8, 1, 0, 1, 1)
@@ -162,10 +162,20 @@ class Ui_TaskDialog(object):
         self.dbtype_mysql.setChecked(True)
         self.dbtype_mysql.setObjectName("dbtype_mysql")
         self.verticalLayout_3.addWidget(self.dbtype_mysql)
-        self.gridLayout_3.addLayout(self.verticalLayout_3, 0, 1, 1, 1)
+        self.gridLayout_3.addLayout(self.verticalLayout_3, 0, 1, 1, 3)
         self.label_7 = QtGui.QLabel(self.groupBox_2)
         self.label_7.setObjectName("label_7")
         self.gridLayout_3.addWidget(self.label_7, 0, 0, 1, 1)
+        self.connTest = QtGui.QPushButton(self.groupBox_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.connTest.sizePolicy().hasHeightForWidth())
+        self.connTest.setSizePolicy(sizePolicy)
+        self.connTest.setObjectName("connTest")
+        self.gridLayout_3.addWidget(self.connTest, 3, 2, 1, 1)
+        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout_3.addItem(spacerItem, 3, 3, 1, 1)
         self.horizontalLayout_2.addLayout(self.gridLayout_3)
         self.verticalLayout.addWidget(self.groupBox_2)
 
@@ -190,13 +200,12 @@ class Ui_TaskDialog(object):
         self.label_14.setText(QtGui.QApplication.translate("TaskDialog", "执行SQL语句", None, QtGui.QApplication.UnicodeUTF8))
         self.label_9.setText(QtGui.QApplication.translate("TaskDialog", "文件地址", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setText(QtGui.QApplication.translate("TaskDialog", "数据库地址", None, QtGui.QApplication.UnicodeUTF8))
-        self.mysql_dbhost.setText(QtGui.QApplication.translate("TaskDialog", "localhost", None, QtGui.QApplication.UnicodeUTF8))
         self.label_11.setText(QtGui.QApplication.translate("TaskDialog", "数据库用户名", None, QtGui.QApplication.UnicodeUTF8))
         self.label_12.setText(QtGui.QApplication.translate("TaskDialog", "数据库密码", None, QtGui.QApplication.UnicodeUTF8))
         self.label_13.setText(QtGui.QApplication.translate("TaskDialog", "数据库名称", None, QtGui.QApplication.UnicodeUTF8))
-        self.mysql_dbuser.setText(QtGui.QApplication.translate("TaskDialog", "root", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("TaskDialog", "数据库连接信息", None, QtGui.QApplication.UnicodeUTF8))
         self.dbtype_sqlite.setText(QtGui.QApplication.translate("TaskDialog", "SQLite", None, QtGui.QApplication.UnicodeUTF8))
         self.dbtype_mysql.setText(QtGui.QApplication.translate("TaskDialog", "MySQL", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("TaskDialog", "数据库类型", None, QtGui.QApplication.UnicodeUTF8))
+        self.connTest.setText(QtGui.QApplication.translate("TaskDialog", "测试连接", None, QtGui.QApplication.UnicodeUTF8))
 

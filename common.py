@@ -53,13 +53,13 @@ class Func:
             res = variant.toString()
         return res
 
-    def serialize(obj):
+    def serialize(self, obj):
         try:
             return simplejson.dumps(obj)
         except:
             pass
 
-    def unserialize(obj):
+    def unserialize(self, obj):
         try:
             return simplejson.loads(obj)
         except:

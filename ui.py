@@ -31,16 +31,21 @@ class TaskUI(QtGui.QDialog):
         # get robot list from database
         self.getRobotList()
 
+        self.ui.sqlite_layout.setVisible(False)
+        self.ui.mysql_layout.setVisible(False)
+
         if taskid>0:
             self.setTaskInfo()
-
-        # db set
-        self.ui.sqlite_layout.setVisible(False)
+        else:
+            self.ui.mysql_layout.setVisible(True)
+            self.ui.taskSave.setEnabled(False)
 
         self.ui.dbtype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
         self.ui.dbtype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
 
-        self.ui.taskSave.setEnabled(False)
+        self.connect(self.ui.taskname, QtCore.SIGNAL("textChanged(QString)"), self.checkSubmit)
+        self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.checkSubmit)
+        self.connect(self.ui.connTest, QtCore.SIGNAL("clicked()"), self.checkConn)
         self.connect(self.ui.taskSave, QtCore.SIGNAL("clicked()"), self.verify)
 
     def setTaskInfo(self):
@@ -50,6 +55,19 @@ class TaskUI(QtGui.QDialog):
         isloop = (taskinfo.loop==1 and [True] or [False])[0]
         loopperiod = taskinfo.loopperiod
         runtime = Func.fromTimestamp(taskinfo.runtime)
+
+        dbconn = Func.unserialize(taskinfo.dbconn)
+        if dbconn['dbtype']=='sqlite':
+            self.ui.dbtype_sqlite.setChecked(True)
+            self.ui.sqlite_layout.setVisible(True)
+            self.ui.sqlite_dbname.setText(dbconn['dbname'])
+        elif dbconn['dbtype']=='mysql':
+            self.ui.dbtype_mysql.setChecked(True)
+            self.ui.mysql_layout.setVisible(True)
+            self.ui.mysql_dbname.setText(dbconn['dbname'])
+            self.ui.mysql_dbhost.setText(dbconn['dbhost'])
+            self.ui.mysql_dbuser.setText(dbconn['dbuser'])
+            self.ui.mysql_dbpw.setText(dbconn['dbpw'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -70,6 +88,41 @@ class TaskUI(QtGui.QDialog):
         except:
             self.parent.ui.statusbar.showMessage(u'* 读取列表数据出错了.')
 
+    def getDbConfig(self):
+        dbtype = ''
+        if self.ui.dbtype_sqlite.isChecked():
+            dbtype = 'sqlite'
+            dbname = Func.toStr(self.ui.sqlite_dbname.text())
+            dbhost = dbuser = dbpw = ''
+        elif self.ui.dbtype_mysql.isChecked():
+            dbtype = 'mysql'
+            dbname = Func.toStr(self.ui.mysql_dbname.text())
+            dbhost = Func.toStr(self.ui.mysql_dbhost.text())
+            dbuser = Func.toStr(self.ui.mysql_dbuser.text())
+            dbpw = Func.toStr(self.ui.mysql_dbpw.text())
+
+        return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
+
+    def checkSubmit(self):
+        robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
+        taskname = Func.toStr(self.ui.taskname.text())
+        if robotid and taskname:
+            self.ui.taskSave.setEnabled(True)
+        else:
+            self.ui.taskSave.setEnabled(False)
+
+    def checkConn(self):
+        dbconn = self.getDbConfig()
+        from sqlalchemy import create_engine
+        from sqlalchemy.exc import OperationalError
+        try:
+            db_engine = create_engine('%s://%s:%s@%s/%s' % (dbconn['dbtype'], dbconn['dbuser'], dbconn['dbpw'], dbconn['dbhost'], dbconn['dbname']))
+            db_engine.connect()
+            QtGui.QMessageBox.about(self, u'数据库连接测试', u'恭喜，数据库连接成功！')
+        except OperationalError, e:
+            code, message = e.orig
+            QtGui.QMessageBox.critical(self, u'数据库连接测试', 'Error %s: %s' % (code, message))
+
     def verify(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
         taskname = Func.toStr(self.ui.taskname.text())
@@ -87,31 +140,7 @@ class TaskUI(QtGui.QDialog):
             task.runtime = Func.toTimestamp(self.ui.runtime.dateTime())
             task.nextruntime = 0
 
-            dbtype, dbconn = '', {}
-            if self.ui.dbtype_sqlite.isChecked():
-                dbtype = 'sqlite'
-                dbname = Func.toStr(self.ui.sqlite_dbname.text())
-                dbhost, dbuser, dbpw = ''
-            elif self.ui.dbtype_mysql.isChecked():
-                dbtype = 'mysql'
-                dbname = Func.toStr(self.ui.mysql_dbname.text())
-                dbhost = Func.toStr(self.ui.mysql_dbhost.text())
-                dbuser = Func.toStr(self.ui.mysql_dbuser.text())
-                dbpw = Func.toStr(self.ui.mysql_dbpw.text())
-
-            from sqlalchemy import create_engine
-            from sqlalchemy.exc import OperationalError
-            try:
-                db_engine = create_engine('%s://%s:%s@%s/%s' % (dbtype, dbuser, dbpw, dbhost, dbname))
-                db_engine.connect()
-                dbconn = {'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
-                dbconn = Func.serialize(dbconn)
-            except OperationalError, e:
-                code, message = e.orig
-                print 'Error %s: %s' % (code, message)
-
-            task.dbtype = dbtype
-            task.dbconn = dbconn
+            task.dbconn = Func.serialize(self.getDbConfig())
 
             if not self.taskid>0:
                 session.add(task)
