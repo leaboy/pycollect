@@ -93,6 +93,7 @@ class MainUI(QtGui.QMainWindow):
             from ui import TaskUI
             Dialog = TaskUI(u'修改任务', self, taskid)
             if Dialog.exec_() == QtGui.QDialog.Accepted:
+                self.stopThread(taskid)
                 self.getTaskList()
         else:
             self.getTaskList()
@@ -323,7 +324,7 @@ class MainUI(QtGui.QMainWindow):
         if self.threadList.has_key(taskid):
             return
         from run_task import RunTask
-        t = RunTask(self.taskList[taskid]['taskinfo'], self)
+        t = RunTask(taskid, self)
         self.threadList[taskid] = t
         self.connect(t, QtCore.SIGNAL("Updated"), self.updateNextRunTime)
         self.connect(t, QtCore.SIGNAL("Activated"), self.updateTaskState)

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Task.ui'
 #
-# Created: Wed Aug 24 10:47:54 2011
+# Created: Thu Aug 25 13:57:05 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_TaskDialog(object):
     def setupUi(self, TaskDialog):
         TaskDialog.setObjectName("TaskDialog")
-        TaskDialog.resize(399, 457)
+        TaskDialog.resize(399, 435)
         self.verticalLayout = QtGui.QVBoxLayout(TaskDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(TaskDialog)
@@ -90,14 +90,14 @@ class Ui_TaskDialog(object):
         self.taskSave.setSizePolicy(sizePolicy)
         self.taskSave.setObjectName("taskSave")
         self.gridLayout_3.addWidget(self.taskSave, 3, 1, 1, 1)
-        self.plainTextEdit = QtGui.QPlainTextEdit(self.groupBox_2)
+        self.importSQL = QtGui.QPlainTextEdit(self.groupBox_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.plainTextEdit.sizePolicy().hasHeightForWidth())
-        self.plainTextEdit.setSizePolicy(sizePolicy)
-        self.plainTextEdit.setObjectName("plainTextEdit")
-        self.gridLayout_3.addWidget(self.plainTextEdit, 2, 1, 1, 3)
+        sizePolicy.setHeightForWidth(self.importSQL.sizePolicy().hasHeightForWidth())
+        self.importSQL.setSizePolicy(sizePolicy)
+        self.importSQL.setObjectName("importSQL")
+        self.gridLayout_3.addWidget(self.importSQL, 2, 1, 1, 3)
         self.label_14 = QtGui.QLabel(self.groupBox_2)
         self.label_14.setObjectName("label_14")
         self.gridLayout_3.addWidget(self.label_14, 2, 0, 1, 1)
@@ -153,16 +153,6 @@ class Ui_TaskDialog(object):
         self.label_8 = QtGui.QLabel(self.groupBox_2)
         self.label_8.setObjectName("label_8")
         self.gridLayout_3.addWidget(self.label_8, 1, 0, 1, 1)
-        self.verticalLayout_3 = QtGui.QVBoxLayout()
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.dbtype_sqlite = QtGui.QRadioButton(self.groupBox_2)
-        self.dbtype_sqlite.setObjectName("dbtype_sqlite")
-        self.verticalLayout_3.addWidget(self.dbtype_sqlite)
-        self.dbtype_mysql = QtGui.QRadioButton(self.groupBox_2)
-        self.dbtype_mysql.setChecked(True)
-        self.dbtype_mysql.setObjectName("dbtype_mysql")
-        self.verticalLayout_3.addWidget(self.dbtype_mysql)
-        self.gridLayout_3.addLayout(self.verticalLayout_3, 0, 1, 1, 3)
         self.label_7 = QtGui.QLabel(self.groupBox_2)
         self.label_7.setObjectName("label_7")
         self.gridLayout_3.addWidget(self.label_7, 0, 0, 1, 1)
@@ -176,6 +166,16 @@ class Ui_TaskDialog(object):
         self.gridLayout_3.addWidget(self.connTest, 3, 2, 1, 1)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_3.addItem(spacerItem, 3, 3, 1, 1)
+        self.gridLayout_5 = QtGui.QGridLayout()
+        self.gridLayout_5.setObjectName("gridLayout_5")
+        self.dbtype_sqlite = QtGui.QRadioButton(self.groupBox_2)
+        self.dbtype_sqlite.setObjectName("dbtype_sqlite")
+        self.gridLayout_5.addWidget(self.dbtype_sqlite, 0, 0, 1, 1)
+        self.dbtype_mysql = QtGui.QRadioButton(self.groupBox_2)
+        self.dbtype_mysql.setChecked(True)
+        self.dbtype_mysql.setObjectName("dbtype_mysql")
+        self.gridLayout_5.addWidget(self.dbtype_mysql, 0, 1, 1, 1)
+        self.gridLayout_3.addLayout(self.gridLayout_5, 0, 1, 1, 3)
         self.horizontalLayout_2.addLayout(self.gridLayout_3)
         self.verticalLayout.addWidget(self.groupBox_2)
 
@@ -204,8 +204,8 @@ class Ui_TaskDialog(object):
         self.label_12.setText(QtGui.QApplication.translate("TaskDialog", "数据库密码", None, QtGui.QApplication.UnicodeUTF8))
         self.label_13.setText(QtGui.QApplication.translate("TaskDialog", "数据库名称", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("TaskDialog", "数据库连接信息", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbtype_sqlite.setText(QtGui.QApplication.translate("TaskDialog", "SQLite", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbtype_mysql.setText(QtGui.QApplication.translate("TaskDialog", "MySQL", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("TaskDialog", "数据库类型", None, QtGui.QApplication.UnicodeUTF8))
         self.connTest.setText(QtGui.QApplication.translate("TaskDialog", "测试连接", None, QtGui.QApplication.UnicodeUTF8))
+        self.dbtype_sqlite.setText(QtGui.QApplication.translate("TaskDialog", "SQLite", None, QtGui.QApplication.UnicodeUTF8))
+        self.dbtype_mysql.setText(QtGui.QApplication.translate("TaskDialog", "MySQL", None, QtGui.QApplication.UnicodeUTF8))
 

@@ -38,7 +38,8 @@ class DummySpider:
             for item in itemlist:
                 res['title'] = item.select(self.subjectrule).extract()[0]
                 res['link'] = item.select(self.subjecturllinkrule).extract()[0]
-                yield res
+                print res['title']
+                #yield res
 
         elif self.rulemode=='regex':
             itemlist = hxs.re(self.subjecturlrule)
@@ -55,16 +56,26 @@ class DummySpider:
             comma = (execSQL=='' and [''] or [';'])[0]
             execSQL += comma + translate(str(self.importSQL))
 
-        if len(execSQL)>0:
+        conn = self.DbConn()
+        if len(execSQL)>0 and conn:
             try:
                 execSQL = execSQL.replace('%', '%%')
-                conn = self.parent.getConnection()
-                DB = ((conn.has_key('DB') and conn['DB'] is not None) and \
-                    [conn['DB']] or [None])[0]
-                DB.execute(execSQL)
+                conn.execute(execSQL)
+                conn.close()
             except:
                 logger.error('Execute SQL error.')
 
+    def DbConn(self):
+        dbconn = Func.unserialize(self.dbconn)
+        from sqlalchemy import create_engine
+        from sqlalchemy.exc import OperationalError
+        try:
+            save_engine = create_engine('%s://%s:%s@%s/%s' % (dbconn['dbtype'], dbconn['dbuser'], dbconn['dbpw'], dbconn['dbhost'], dbconn['dbname']))
+            conn = save_engine.connect()
+            return conn
+        except OperationalError, e:
+            code, message = e.orig
+            logger.error('Error %s: %s.' % (code, message))
 
 from PyQt4 import QtCore
 from pycollect import Task_Flag_Waiting, Task_Flag_Runing, Task_Flag_Stoped, Task_Flag_Failed

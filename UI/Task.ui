@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>399</width>
-    <height>457</height>
+    <height>435</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -165,7 +165,7 @@
          </widget>
         </item>
         <item row="2" column="1" colspan="3">
-         <widget class="QPlainTextEdit" name="plainTextEdit">
+         <widget class="QPlainTextEdit" name="importSQL">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -273,27 +273,6 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="1" colspan="3">
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QRadioButton" name="dbtype_sqlite">
-            <property name="text">
-             <string>SQLite</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="dbtype_mysql">
-            <property name="text">
-             <string>MySQL</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
         <item row="0" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
@@ -326,6 +305,27 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item row="0" column="1" colspan="3">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="dbtype_sqlite">
+            <property name="text">
+             <string>SQLite</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QRadioButton" name="dbtype_mysql">
+            <property name="text">
+             <string>MySQL</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>

@@ -13,9 +13,9 @@ from PyQt4 import QtCore
 from pycollect import Task_Flag_Waiting, Task_Flag_Runing, Task_Flag_Stoped, Task_Flag_Failed
 
 class RunTask(QtCore.QThread):
-    def __init__(self, taskinfo, parent):
+    def __init__(self, taskid, parent):
         QtCore.QThread.__init__(self, parent)
-        self.taskinfo = taskinfo
+        self.taskid = taskid
         self.stoped = False
         self.parent = parent
 
@@ -23,12 +23,13 @@ class RunTask(QtCore.QThread):
         self.stoped = True
 
     def run(self):
-        taskid      = self.taskinfo.taskid
-        robotid     = self.taskinfo.robotid
-        isloop      = self.taskinfo.loop
-        loopperiod  = self.taskinfo.loopperiod
-        runtime     = self.taskinfo.runtime
-        nextruntime = self.taskinfo.nextruntime
+        taskinfo    = self.parent.taskList[self.taskid]['taskinfo']
+        taskid      = taskinfo.taskid
+        robotid     = taskinfo.robotid
+        isloop      = taskinfo.loop
+        loopperiod  = taskinfo.loopperiod
+        runtime     = taskinfo.runtime
+        nextruntime = taskinfo.nextruntime
 
         while True:
             if self.stoped:

@@ -55,6 +55,7 @@ class TaskUI(QtGui.QDialog):
         isloop = (taskinfo.loop==1 and [True] or [False])[0]
         loopperiod = taskinfo.loopperiod
         runtime = Func.fromTimestamp(taskinfo.runtime)
+        importSQL = taskinfo.importSQL
 
         dbconn = Func.unserialize(taskinfo.dbconn)
         if dbconn['dbtype']=='sqlite':
@@ -77,6 +78,7 @@ class TaskUI(QtGui.QDialog):
         runtime = QtCore.QDateTime.fromString(QtCore.QString(runtime), 'yyyy-MM-dd hh:mm:ss')
         self.ui.runtime.setMinimumDateTime(runtime)
         self.ui.runtime.setDateTime(runtime)
+        self.ui.importSQL.setPlainText(importSQL)
 
     def getRobotList(self):
         try:
@@ -139,6 +141,7 @@ class TaskUI(QtGui.QDialog):
             task.loopperiod = self.ui.loopperiod.value()
             task.runtime = Func.toTimestamp(self.ui.runtime.dateTime())
             task.nextruntime = 0
+            task.importSQL = Func.toStr(self.ui.importSQL.toPlainText())
 
             task.dbconn = Func.serialize(self.getDbConfig())
 
