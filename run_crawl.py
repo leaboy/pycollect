@@ -1,3 +1,6 @@
+#!/usr/bin/python
+#-*-coding:utf-8-*-
+
 from ccrawler import common
 from ccrawler.ccrawler import CCrawler
 from ccrawler.selector import HtmlSelector
@@ -38,8 +41,7 @@ class DummySpider:
             for item in itemlist:
                 res['title'] = item.select(self.subjectrule).extract()[0]
                 res['link'] = item.select(self.subjecturllinkrule).extract()[0]
-                print res['title']
-                #yield res
+                yield res
 
         elif self.rulemode=='regex':
             itemlist = hxs.re(self.subjecturlrule)
@@ -50,13 +52,13 @@ class DummySpider:
 
     def process_item(self, item):
         execSQL = ''
+        conn, dbcharset = self.DbConn()
         for i in item:
-            adict = {'[link]': i['link'].encode('utf-8'), '[title]': i['title'].encode('utf-8'), '[runtime]': time.mktime(time.localtime())}
+            adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
             translate = make_xlat(adict)
             comma = (execSQL=='' and [''] or [';'])[0]
             execSQL += comma + translate(str(self.importSQL))
 
-        conn = self.DbConn()
         if len(execSQL)>0 and conn:
             try:
                 execSQL = execSQL.replace('%', '%%')
@@ -67,15 +69,18 @@ class DummySpider:
 
     def DbConn(self):
         dbconn = Func.unserialize(self.dbconn)
+        dbcharset = (dbconn['dbcharset'] and [dbconn['dbcharset']] or ['utf8'])[0]
         from sqlalchemy import create_engine
         from sqlalchemy.exc import OperationalError
         try:
-            save_engine = create_engine('%s://%s:%s@%s/%s' % (dbconn['dbtype'], dbconn['dbuser'], dbconn['dbpw'], dbconn['dbhost'], dbconn['dbname']))
+            save_engine = create_engine('%s://%s:%s@%s/%s?charset=%s' % (dbconn['dbtype'], dbconn['dbuser'], dbconn['dbpw'], dbconn['dbhost'], dbconn['dbname'], dbcharset))
             conn = save_engine.connect()
-            return conn
         except OperationalError, e:
+            conn = None
             code, message = e.orig
             logger.error('Error %s: %s.' % (code, message))
+        return conn, dbcharset
+
 
 from PyQt4 import QtCore
 from pycollect import Task_Flag_Waiting, Task_Flag_Runing, Task_Flag_Stoped, Task_Flag_Failed

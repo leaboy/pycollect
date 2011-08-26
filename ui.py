@@ -69,6 +69,7 @@ class TaskUI(QtGui.QDialog):
             self.ui.mysql_dbhost.setText(dbconn['dbhost'])
             self.ui.mysql_dbuser.setText(dbconn['dbuser'])
             self.ui.mysql_dbpw.setText(dbconn['dbpw'])
+            self.ui.mysql_charset.setText(dbconn['dbcharset'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -102,8 +103,9 @@ class TaskUI(QtGui.QDialog):
             dbhost = Func.toStr(self.ui.mysql_dbhost.text())
             dbuser = Func.toStr(self.ui.mysql_dbuser.text())
             dbpw = Func.toStr(self.ui.mysql_dbpw.text())
+            dbcharset = Func.toStr(self.ui.mysql_charset.text())
 
-        return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
+        return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname, 'dbcharset': dbcharset}
 
     def checkSubmit(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
