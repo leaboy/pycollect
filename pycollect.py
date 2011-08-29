@@ -117,7 +117,7 @@ class MainUI(QtGui.QMainWindow):
         item, robotid = self.getCurrentItem()
         if robotid>0:
             from ui import RobotUI
-            Dialog = RobotUI(u'修改任务', self, robotid)
+            Dialog = RobotUI(u'修改采集器', self, robotid)
             if Dialog.exec_() == QtGui.QDialog.Accepted:
                 self.getRobotList()
         else:

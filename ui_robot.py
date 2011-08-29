@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Robot.ui'
 #
-# Created: Mon Aug 22 10:50:53 2011
+# Created: Mon Aug 29 11:20:02 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -264,28 +264,24 @@ class Ui_RobotDialog(object):
         self.label_37.setObjectName("label_37")
         self.gridLayout_8.addWidget(self.label_37, 0, 0, 1, 1)
         self.label_38 = QtGui.QLabel(self.groupBox_9)
-        self.label_38.setTextFormat(QtCore.Qt.RichText)
         self.label_38.setObjectName("label_38")
         self.gridLayout_8.addWidget(self.label_38, 1, 0, 1, 1)
         self.subjecturlrule = QtGui.QPlainTextEdit(self.groupBox_9)
         self.subjecturlrule.setObjectName("subjecturlrule")
         self.gridLayout_8.addWidget(self.subjecturlrule, 1, 1, 1, 4)
         self.label_39 = QtGui.QLabel(self.groupBox_9)
-        self.label_39.setTextFormat(QtCore.Qt.RichText)
         self.label_39.setObjectName("label_39")
         self.gridLayout_8.addWidget(self.label_39, 2, 0, 1, 1)
         self.subjecturllinkrule = QtGui.QPlainTextEdit(self.groupBox_9)
         self.subjecturllinkrule.setObjectName("subjecturllinkrule")
         self.gridLayout_8.addWidget(self.subjecturllinkrule, 2, 1, 1, 4)
         self.label_40 = QtGui.QLabel(self.groupBox_9)
-        self.label_40.setTextFormat(QtCore.Qt.RichText)
         self.label_40.setObjectName("label_40")
         self.gridLayout_8.addWidget(self.label_40, 3, 0, 1, 1)
         self.subjectrule = QtGui.QPlainTextEdit(self.groupBox_9)
         self.subjectrule.setObjectName("subjectrule")
         self.gridLayout_8.addWidget(self.subjectrule, 3, 1, 1, 4)
         self.label_41 = QtGui.QLabel(self.groupBox_9)
-        self.label_41.setTextFormat(QtCore.Qt.RichText)
         self.label_41.setObjectName("label_41")
         self.gridLayout_8.addWidget(self.label_41, 4, 0, 1, 1)
         self.messagerule = QtGui.QPlainTextEdit(self.groupBox_9)
@@ -372,10 +368,10 @@ class Ui_RobotDialog(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QtGui.QApplication.translate("RobotDialog", "基本信息", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_9.setTitle(QtGui.QApplication.translate("RobotDialog", "采集设置>>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_37.setText(QtGui.QApplication.translate("RobotDialog", "匹配模式", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_38.setText(QtGui.QApplication.translate("RobotDialog", "列表区域识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[list]</font>", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_39.setText(QtGui.QApplication.translate("RobotDialog", "文章链接URL识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[url]、[title]</font>", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_40.setText(QtGui.QApplication.translate("RobotDialog", "文章标题识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[title]</font>", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_41.setText(QtGui.QApplication.translate("RobotDialog", "文章内容识别规则<br/><font color=\'#ACCAEF\'>截取的地方加上：<br/>[message]</font>", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_38.setText(QtGui.QApplication.translate("RobotDialog", "列表区域识别规则", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_39.setText(QtGui.QApplication.translate("RobotDialog", "文章链接URL识别规则", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_40.setText(QtGui.QApplication.translate("RobotDialog", "文章标题识别规则", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_41.setText(QtGui.QApplication.translate("RobotDialog", "文章内容识别规则", None, QtGui.QApplication.UnicodeUTF8))
         self.label_43.setText(QtGui.QApplication.translate("RobotDialog", "其它设置", None, QtGui.QApplication.UnicodeUTF8))
         self.rule_mode_regex.setText(QtGui.QApplication.translate("RobotDialog", "正则", None, QtGui.QApplication.UnicodeUTF8))
         self.rule_mode_xpath.setText(QtGui.QApplication.translate("RobotDialog", "XPath", None, QtGui.QApplication.UnicodeUTF8))

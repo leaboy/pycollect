@@ -18,7 +18,6 @@ class DummySpider:
         self.dbconn = task.dbconn
         self.importSQL = task.importSQL
         robot = task.robotinfo
-        self.start_urls = Func.getStartUrls(robot.listurl, robot.listpagestart, robot.listpageend, robot.wildcardlen, robot.stockdata)
         self.subjecturlrule = robot.subjecturlrule
         self.subjectrule = robot.subjectrule
         self.subjecturllinkrule   = robot.subjecturllinkrule
@@ -26,6 +25,8 @@ class DummySpider:
         self.rulemode = robot.rulemode
         self.linkmode = robot.linkmode
         self.downloadmode = robot.downloadmode
+
+        self.start_urls = Func.getStartUrls(robot.listurl, robot.listpagestart, robot.listpageend, robot.wildcardlen, robot.stockdata)
         self.workers = robot.threads
         self.timeout = robot.timeout
         self.parent = parent
