@@ -34,28 +34,48 @@ class DummySpider:
     def parse(self, response):
         res = {}
         res['url'] = response.url
-        res['message'] = 'None'
 
-        hxs = HtmlSelector(response.body)
+        hxs = HtmlSelector(response)
         if self.rulemode=='xpath':
             itemlist = hxs.select(self.subjecturlrule)
-            for item in itemlist:
-                res['title'] = item.select(self.subjectrule).extract()[0]
-                res['link'] = item.select(self.subjecturllinkrule).extract()[0]
-                yield res
+            if self.linkmode:
+                for item in itemlist:
+                    res['title'] = item.select(self.subjectrule).extract()
+                    res['link'] = item.select(self.subjecturllinkrule).extract()
+                    res['message'] = ''
+                    yield self.result_check(res)
+            else:
+                pageitem = itemlist.select(self.subjecturllinkrule).Link()
+                for item in pageitem:
+                    if item:
+                        res['link'] = item.base_url
+                        res['title'] = item.select(self.subjectrule).extract()
+                        res['message'] = item.select(self.messagerule).extract()
+                        yield self.result_check(res)
+
 
         elif self.rulemode=='regex':
             itemlist = hxs.re(self.subjecturlrule)
-            for item in itemlist:
-                res['title'] = item.re(self.subjectrule)[0]
-                res['link'] = item.re(self.subjecturllinkrule)[0]
-                yield res
+            if self.linkmode:
+                for item in itemlist:
+                    res['title'] = item.re(self.subjectrule).extract()
+                    res['link'] = item.re(self.subjecturllinkrule).extract()
+                    res['message'] = ''
+                    yield self.result_check(res)
+            else:
+                pageitem = itemlist.re(self.subjecturllinkrule).Link()
+                for item in pageitem:
+                    if item:
+                        res['link'] = item.base_url
+                        res['title'] = item.re(self.subjectrule).extract()
+                        res['message'] = item.select(self.messagerule).extract()
+                        yield self.result_check(res)
 
-    def process_item(self, item):
+    def process_item(self, result):
         execSQL = ''
-        conn, dbcharset = self.DbConn()
-        for i in item:
-            adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
+        for i in result:
+            conn, dbcharset = self.DbConn()
+            adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
             translate = make_xlat(adict)
             comma = (execSQL=='' and [''] or [';'])[0]
             execSQL += comma + translate(str(self.importSQL))
@@ -82,6 +102,12 @@ class DummySpider:
             logger.error('Error %s: %s.' % (code, message))
         return conn, dbcharset
 
+    def result_check(self, res):
+        res['title'] = res['title'] and res['title'][0] or ''
+        if isinstance(res['link'], list) and len(res['link'])>0:
+            res['link'] = res['link'][0]
+        res['message'] = res['message'] and res['message'][0] or ''
+        return res
 
 from PyQt4 import QtCore
 from pycollect import Task_Flag_Waiting, Task_Flag_Runing, Task_Flag_Stoped, Task_Flag_Failed
