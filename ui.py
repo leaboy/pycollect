@@ -33,6 +33,7 @@ class TaskUI(QtGui.QDialog):
 
         self.ui.sqlite_layout.setVisible(False)
         self.ui.mysql_layout.setVisible(False)
+        self.ui.json_layout.setVisible(False)
 
         if taskid>0:
             self.setTaskInfo()
@@ -42,6 +43,7 @@ class TaskUI(QtGui.QDialog):
 
         self.ui.dbtype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
         self.ui.dbtype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
+        self.ui.dbtype_json.toggled.connect(self.ui.json_layout.setVisible)
 
         self.connect(self.ui.taskname, QtCore.SIGNAL("textChanged(QString)"), self.checkSubmit)
         self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.checkSubmit)
@@ -70,6 +72,11 @@ class TaskUI(QtGui.QDialog):
             self.ui.mysql_dbuser.setText(dbconn['dbuser'])
             self.ui.mysql_dbpw.setText(dbconn['dbpw'])
             self.ui.mysql_charset.setText(dbconn['dbcharset'])
+        elif dbconn['dbtype']=='json':
+            self.ui.dbtype_json.setChecked(True)
+            self.ui.json_layout.setVisible(True)
+            self.ui.json_api_url.setText(dbconn['apiurl'])
+            self.ui.json_api_param.setText(dbconn['apiparam'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -96,7 +103,8 @@ class TaskUI(QtGui.QDialog):
         if self.ui.dbtype_sqlite.isChecked():
             dbtype = 'sqlite'
             dbname = Func.toStr(self.ui.sqlite_dbname.text())
-            dbhost = dbuser = dbpw = ''
+            dbhost = dbuser = dbpw = dbcharset = ''
+            return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
         elif self.ui.dbtype_mysql.isChecked():
             dbtype = 'mysql'
             dbname = Func.toStr(self.ui.mysql_dbname.text())
@@ -104,8 +112,12 @@ class TaskUI(QtGui.QDialog):
             dbuser = Func.toStr(self.ui.mysql_dbuser.text())
             dbpw = Func.toStr(self.ui.mysql_dbpw.text())
             dbcharset = Func.toStr(self.ui.mysql_charset.text())
-
-        return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname, 'dbcharset': dbcharset}
+            return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname, 'dbcharset': dbcharset}
+        elif self.ui.dbtype_json.isChecked():
+            dbtype = 'json'
+            apiurl = Func.toStr(self.ui.json_api_url.text())
+            apiparam = Func.toStr(self.ui.json_api_param.text())
+            return {'dbtype': dbtype, 'apiurl': apiurl, 'apiparam': apiparam}
 
     def checkSubmit(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
