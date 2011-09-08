@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Task.ui'
 #
-# Created: Tue Sep 06 17:22:13 2011
+# Created: Thu Sep 08 10:20:15 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -236,28 +236,28 @@ class Ui_TaskDialog(object):
         self.gridLayout_3.addItem(spacerItem, 2, 3, 1, 1)
         self.gridLayout_5 = QtGui.QGridLayout()
         self.gridLayout_5.setObjectName("gridLayout_5")
-        self.dbtype_sqlite = QtGui.QRadioButton(self.groupBox_2)
+        self.datatype_sqlite = QtGui.QRadioButton(self.groupBox_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.dbtype_sqlite.sizePolicy().hasHeightForWidth())
-        self.dbtype_sqlite.setSizePolicy(sizePolicy)
-        self.dbtype_sqlite.setObjectName("dbtype_sqlite")
-        self.gridLayout_5.addWidget(self.dbtype_sqlite, 0, 0, 1, 1)
-        self.dbtype_mysql = QtGui.QRadioButton(self.groupBox_2)
+        sizePolicy.setHeightForWidth(self.datatype_sqlite.sizePolicy().hasHeightForWidth())
+        self.datatype_sqlite.setSizePolicy(sizePolicy)
+        self.datatype_sqlite.setObjectName("datatype_sqlite")
+        self.gridLayout_5.addWidget(self.datatype_sqlite, 0, 0, 1, 1)
+        self.datatype_mysql = QtGui.QRadioButton(self.groupBox_2)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.dbtype_mysql.sizePolicy().hasHeightForWidth())
-        self.dbtype_mysql.setSizePolicy(sizePolicy)
-        self.dbtype_mysql.setChecked(True)
-        self.dbtype_mysql.setObjectName("dbtype_mysql")
-        self.gridLayout_5.addWidget(self.dbtype_mysql, 0, 1, 1, 1)
+        sizePolicy.setHeightForWidth(self.datatype_mysql.sizePolicy().hasHeightForWidth())
+        self.datatype_mysql.setSizePolicy(sizePolicy)
+        self.datatype_mysql.setChecked(True)
+        self.datatype_mysql.setObjectName("datatype_mysql")
+        self.gridLayout_5.addWidget(self.datatype_mysql, 0, 1, 1, 1)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_5.addItem(spacerItem1, 0, 4, 1, 1)
-        self.dbtype_json = QtGui.QRadioButton(self.groupBox_2)
-        self.dbtype_json.setObjectName("dbtype_json")
-        self.gridLayout_5.addWidget(self.dbtype_json, 0, 2, 1, 1)
+        self.datatype_json = QtGui.QRadioButton(self.groupBox_2)
+        self.datatype_json.setObjectName("datatype_json")
+        self.gridLayout_5.addWidget(self.datatype_json, 0, 2, 1, 1)
         self.gridLayout_3.addLayout(self.gridLayout_5, 0, 1, 1, 3)
         self.horizontalLayout_2.addLayout(self.gridLayout_3)
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -292,7 +292,7 @@ class Ui_TaskDialog(object):
         self.label_14.setText(QtGui.QApplication.translate("TaskDialog", "执行SQL语句", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("TaskDialog", "数据类型", None, QtGui.QApplication.UnicodeUTF8))
         self.connTest.setText(QtGui.QApplication.translate("TaskDialog", "测试连接", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbtype_sqlite.setText(QtGui.QApplication.translate("TaskDialog", "SQLite", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbtype_mysql.setText(QtGui.QApplication.translate("TaskDialog", "MySQL", None, QtGui.QApplication.UnicodeUTF8))
-        self.dbtype_json.setText(QtGui.QApplication.translate("TaskDialog", "JSON", None, QtGui.QApplication.UnicodeUTF8))
+        self.datatype_sqlite.setText(QtGui.QApplication.translate("TaskDialog", "SQLite", None, QtGui.QApplication.UnicodeUTF8))
+        self.datatype_mysql.setText(QtGui.QApplication.translate("TaskDialog", "MySQL", None, QtGui.QApplication.UnicodeUTF8))
+        self.datatype_json.setText(QtGui.QApplication.translate("TaskDialog", "JSON", None, QtGui.QApplication.UnicodeUTF8))
 

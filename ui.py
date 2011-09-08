@@ -41,9 +41,9 @@ class TaskUI(QtGui.QDialog):
             self.ui.mysql_layout.setVisible(True)
             self.ui.taskSave.setEnabled(False)
 
-        self.ui.dbtype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
-        self.ui.dbtype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
-        self.ui.dbtype_json.toggled.connect(self.ui.json_layout.setVisible)
+        self.ui.datatype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
+        self.ui.datatype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
+        self.ui.datatype_json.toggled.connect(self.ui.json_layout.setVisible)
 
         self.connect(self.ui.taskname, QtCore.SIGNAL("textChanged(QString)"), self.checkSubmit)
         self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.checkSubmit)
@@ -59,24 +59,24 @@ class TaskUI(QtGui.QDialog):
         runtime = Func.fromTimestamp(taskinfo.runtime)
         importSQL = taskinfo.importSQL
 
-        dbconn = Func.unserialize(taskinfo.dbconn)
-        if dbconn['dbtype']=='sqlite':
-            self.ui.dbtype_sqlite.setChecked(True)
+        dataconn = Func.unserialize(taskinfo.dataconn)
+        if dataconn['datatype']=='sqlite':
+            self.ui.datatype_sqlite.setChecked(True)
             self.ui.sqlite_layout.setVisible(True)
-            self.ui.sqlite_dbname.setText(dbconn['dbname'])
-        elif dbconn['dbtype']=='mysql':
-            self.ui.dbtype_mysql.setChecked(True)
+            self.ui.sqlite_dbname.setText(dataconn['dbname'])
+        elif dataconn['datatype']=='mysql':
+            self.ui.datatype_mysql.setChecked(True)
             self.ui.mysql_layout.setVisible(True)
-            self.ui.mysql_dbname.setText(dbconn['dbname'])
-            self.ui.mysql_dbhost.setText(dbconn['dbhost'])
-            self.ui.mysql_dbuser.setText(dbconn['dbuser'])
-            self.ui.mysql_dbpw.setText(dbconn['dbpw'])
-            self.ui.mysql_charset.setText(dbconn['dbcharset'])
-        elif dbconn['dbtype']=='json':
-            self.ui.dbtype_json.setChecked(True)
+            self.ui.mysql_dbname.setText(dataconn['dbname'])
+            self.ui.mysql_dbhost.setText(dataconn['dbhost'])
+            self.ui.mysql_dbuser.setText(dataconn['dbuser'])
+            self.ui.mysql_dbpw.setText(dataconn['dbpw'])
+            self.ui.mysql_charset.setText(dataconn['dbcharset'])
+        elif dataconn['datatype']=='json':
+            self.ui.datatype_json.setChecked(True)
             self.ui.json_layout.setVisible(True)
-            self.ui.json_api_url.setText(dbconn['apiurl'])
-            self.ui.json_api_param.setText(dbconn['apiparam'])
+            self.ui.json_api_url.setText(dataconn['apiurl'])
+            self.ui.json_api_param.setText(dataconn['apiparam'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -98,26 +98,26 @@ class TaskUI(QtGui.QDialog):
         except:
             self.parent.ui.statusbar.showMessage(u'* 读取列表数据出错了.')
 
-    def getDbConfig(self):
-        dbtype = ''
-        if self.ui.dbtype_sqlite.isChecked():
-            dbtype = 'sqlite'
+    def getAPIConfig(self):
+        datatype = ''
+        if self.ui.datatype_sqlite.isChecked():
+            datatype = 'sqlite'
             dbname = Func.toStr(self.ui.sqlite_dbname.text())
             dbhost = dbuser = dbpw = dbcharset = ''
-            return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
-        elif self.ui.dbtype_mysql.isChecked():
-            dbtype = 'mysql'
+            return {'datatype': datatype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname}
+        elif self.ui.datatype_mysql.isChecked():
+            datatype = 'mysql'
             dbname = Func.toStr(self.ui.mysql_dbname.text())
             dbhost = Func.toStr(self.ui.mysql_dbhost.text())
             dbuser = Func.toStr(self.ui.mysql_dbuser.text())
             dbpw = Func.toStr(self.ui.mysql_dbpw.text())
             dbcharset = Func.toStr(self.ui.mysql_charset.text())
-            return {'dbtype': dbtype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname, 'dbcharset': dbcharset}
-        elif self.ui.dbtype_json.isChecked():
-            dbtype = 'json'
+            return {'datatype': datatype, 'dbuser': dbuser, 'dbpw': dbpw, 'dbhost': dbhost, 'dbname': dbname, 'dbcharset': dbcharset}
+        elif self.ui.datatype_json.isChecked():
+            datatype = 'json'
             apiurl = Func.toStr(self.ui.json_api_url.text())
             apiparam = Func.toStr(self.ui.json_api_param.text())
-            return {'dbtype': dbtype, 'apiurl': apiurl, 'apiparam': apiparam}
+            return {'datatype': datatype, 'apiurl': apiurl, 'apiparam': apiparam}
 
     def checkSubmit(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
@@ -128,16 +128,26 @@ class TaskUI(QtGui.QDialog):
             self.ui.taskSave.setEnabled(False)
 
     def checkConn(self):
-        dbconn = self.getDbConfig()
-        from sqlalchemy import create_engine
-        from sqlalchemy.exc import OperationalError
-        try:
-            db_engine = create_engine('%s://%s:%s@%s/%s' % (dbconn['dbtype'], dbconn['dbuser'], dbconn['dbpw'], dbconn['dbhost'], dbconn['dbname']))
-            db_engine.connect()
-            QtGui.QMessageBox.about(self, u'数据库连接测试', u'恭喜，数据库连接成功！')
-        except OperationalError, e:
-            code, message = e.orig
-            QtGui.QMessageBox.critical(self, u'数据库连接测试', 'Error %s: %s' % (code, message))
+        dataconn = self.getAPIConfig()
+        if self.ui.datatype_json.isChecked():
+            import urllib2
+            try:
+                opener = urllib2.urlopen(dataconn['apiurl'], data=dataconn['apiparam'])
+                QtGui.QMessageBox.about(self, u'数据接口连接测试', u'恭喜，API地址连接成功！')
+            except urllib2.HTTPError, e:
+                QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'HTTPError: %s.' % e.code)
+            except urllib2.URLError, e:
+                QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'URLError: %s.' % e.args[0])
+        else:
+            from sqlalchemy import create_engine
+            from sqlalchemy.exc import OperationalError
+            try:
+                db_engine = create_engine('%s://%s:%s@%s/%s' % (dataconn['datatype'], dataconn['dbuser'], dataconn['dbpw'], dataconn['dbhost'], dataconn['dbname']))
+                db_engine.connect()
+                QtGui.QMessageBox.about(self, u'数据接口连接测试', u'恭喜，数据库连接成功！')
+            except OperationalError, e:
+                code, message = e.orig
+                QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'Error %s: %s' % (code, message))
 
     def verify(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
@@ -157,7 +167,7 @@ class TaskUI(QtGui.QDialog):
             task.nextruntime = 0
             task.importSQL = Func.toStr(self.ui.importSQL.toPlainText())
 
-            task.dbconn = Func.serialize(self.getDbConfig())
+            task.dataconn = Func.serialize(self.getAPIConfig())
 
             if not self.taskid>0:
                 session.add(task)

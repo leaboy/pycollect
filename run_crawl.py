@@ -15,7 +15,7 @@ class DummySpider:
     def __init__(self, task, parent):
         self.taskid = task.taskid
         self.robotid = task.robotid
-        self.dbconn = task.dbconn
+        self.dataconn = task.dataconn
         self.importSQL = task.importSQL
         robot = task.robotinfo
         self.subjecturlrule = robot.subjecturlrule
@@ -73,34 +73,38 @@ class DummySpider:
 
     def process_item(self, result):
         execSQL = ''
-        for i in result:
-            conn, dbcharset = self.DbConn()
-            adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
-            translate = make_xlat(adict)
-            comma = (execSQL=='' and [''] or [';'])[0]
-            execSQL += comma + translate(str(self.importSQL))
+        datatype, conn, dbcharset = self.DbConn()
+        if datatype == 'json':
+            pass
+        else:
+            for i in result:
+                adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
+                translate = make_xlat(adict)
+                comma = (execSQL=='' and [''] or [';'])[0]
+                execSQL += comma + translate(str(self.importSQL))
 
-        if len(execSQL)>0 and conn:
-            try:
-                execSQL = execSQL.replace('%', '%%')
-                conn.execute(execSQL)
-                conn.close()
-            except:
-                logger.error('Execute SQL error.')
+            if len(execSQL)>0 and conn:
+                try:
+                    execSQL = execSQL.replace('%', '%%')
+                    conn.execute(execSQL)
+                    conn.close()
+                except:
+                    logger.error('Execute SQL error.')
 
     def DbConn(self):
-        dbconn = Func.unserialize(self.dbconn)
-        dbcharset = (dbconn['dbcharset'] and [dbconn['dbcharset']] or ['utf8'])[0]
-        from sqlalchemy import create_engine
-        from sqlalchemy.exc import OperationalError
-        try:
-            save_engine = create_engine('%s://%s:%s@%s/%s?charset=%s' % (dbconn['dbtype'], dbconn['dbuser'], dbconn['dbpw'], dbconn['dbhost'], dbconn['dbname'], dbcharset))
-            conn = save_engine.connect()
-        except OperationalError, e:
-            conn = None
-            code, message = e.orig
-            logger.error('Error %s: %s.' % (code, message))
-        return conn, dbcharset
+        dataconn = Func.unserialize(self.dataconn)
+        dbcharset = ((hasattr(dataconn, 'dbcharset') and dataconn['dbcharset']) and [dataconn['dbcharset']] or ['utf8'])[0]
+        if not dataconn['datatype'] == 'json':
+            from sqlalchemy import create_engine
+            from sqlalchemy.exc import OperationalError
+            try:
+                save_engine = create_engine('%s://%s:%s@%s/%s?charset=%s' % (dataconn['datatype'], dataconn['dbuser'], dataconn['dbpw'], dataconn['dbhost'], dataconn['dbname'], dbcharset))
+                conn = save_engine.connect()
+            except OperationalError, e:
+                conn = None
+                code, message = e.orig
+                logger.error('Error %s: %s.' % (code, message))
+        return dataconn['datatype'], conn, dbcharset
 
     def result_check(self, res):
         res['title'] = res['title'] and res['title'][0] or ''
