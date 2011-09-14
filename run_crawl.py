@@ -8,7 +8,7 @@ from ccrawler.selector import HtmlSelector
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
-import time
+import time, urllib, urllib2
 from common import Func, make_xlat
 
 class DummySpider:
@@ -53,7 +53,6 @@ class DummySpider:
                         res['message'] = item.select(self.messagerule).extract()
                         yield self.result_check(res)
 
-
         elif self.rulemode=='regex':
             itemlist = hxs.re(self.subjecturlrule)
             if self.linkmode:
@@ -68,14 +67,23 @@ class DummySpider:
                     if item:
                         res['link'] = item.base_url
                         res['title'] = item.re(self.subjectrule).extract()
-                        res['message'] = item.select(self.messagerule).extract()
+                        res['message'] = item.re(self.messagerule).extract()
                         yield self.result_check(res)
 
     def process_item(self, result):
         execSQL = ''
-        datatype, conn, dbcharset = self.DbConn()
-        if datatype == 'json':
-            pass
+        dataconn, dbconn, dbcharset = self.DbConn()
+        if dataconn['datatype']=='json':
+            for i in result:
+                adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
+                translate = make_xlat(adict)
+                try:
+                    param = translate(str(dataconn['apiparam']))
+                    request = urllib2.Request(dataconn['apiurl'], param)
+                    response = urllib2.urlopen(request)
+                    print response.read()
+                except:
+                    logger.error('Connect API error.')
         else:
             for i in result:
                 adict = {'[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
@@ -83,28 +91,28 @@ class DummySpider:
                 comma = (execSQL=='' and [''] or [';'])[0]
                 execSQL += comma + translate(str(self.importSQL))
 
-            if len(execSQL)>0 and conn:
+            if len(execSQL)>0 and dbconn:
                 try:
                     execSQL = execSQL.replace('%', '%%')
-                    conn.execute(execSQL)
-                    conn.close()
+                    dbconn.execute(execSQL)
+                    dbconn.close()
                 except:
                     logger.error('Execute SQL error.')
 
     def DbConn(self):
+        dbconn = None
         dataconn = Func.unserialize(self.dataconn)
         dbcharset = ((hasattr(dataconn, 'dbcharset') and dataconn['dbcharset']) and [dataconn['dbcharset']] or ['utf8'])[0]
-        if not dataconn['datatype'] == 'json':
+        if not dataconn['datatype']=='json':
             from sqlalchemy import create_engine
             from sqlalchemy.exc import OperationalError
             try:
                 save_engine = create_engine('%s://%s:%s@%s/%s?charset=%s' % (dataconn['datatype'], dataconn['dbuser'], dataconn['dbpw'], dataconn['dbhost'], dataconn['dbname'], dbcharset))
-                conn = save_engine.connect()
+                dbconn = save_engine.connect()
             except OperationalError, e:
-                conn = None
                 code, message = e.orig
                 logger.error('Error %s: %s.' % (code, message))
-        return dataconn['datatype'], conn, dbcharset
+        return dataconn, dbconn, dbcharset
 
     def result_check(self, res):
         res['title'] = res['title'] and res['title'][0] or ''

@@ -41,9 +41,13 @@ class TaskUI(QtGui.QDialog):
             self.ui.mysql_layout.setVisible(True)
             self.ui.taskSave.setEnabled(False)
 
+        def toggledJson(flag):
+            self.ui.json_layout.setVisible(flag)
+            self.ui.execute_sql_layout.setVisible(not flag)
+
         self.ui.datatype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
         self.ui.datatype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
-        self.ui.datatype_json.toggled.connect(self.ui.json_layout.setVisible)
+        self.ui.datatype_json.toggled.connect(toggledJson)
 
         self.connect(self.ui.taskname, QtCore.SIGNAL("textChanged(QString)"), self.checkSubmit)
         self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.checkSubmit)
@@ -73,10 +77,11 @@ class TaskUI(QtGui.QDialog):
             self.ui.mysql_dbpw.setText(dataconn['dbpw'])
             self.ui.mysql_charset.setText(dataconn['dbcharset'])
         elif dataconn['datatype']=='json':
+            self.ui.execute_sql_layout.setVisible(False)
             self.ui.datatype_json.setChecked(True)
             self.ui.json_layout.setVisible(True)
             self.ui.json_api_url.setText(dataconn['apiurl'])
-            self.ui.json_api_param.setText(dataconn['apiparam'])
+            self.ui.json_api_param.setPlainText(dataconn['apiparam'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -116,7 +121,7 @@ class TaskUI(QtGui.QDialog):
         elif self.ui.datatype_json.isChecked():
             datatype = 'json'
             apiurl = Func.toStr(self.ui.json_api_url.text())
-            apiparam = Func.toStr(self.ui.json_api_param.text())
+            apiparam = Func.toStr(self.ui.json_api_param.toPlainText())
             return {'datatype': datatype, 'apiurl': apiurl, 'apiparam': apiparam}
 
     def checkSubmit(self):
@@ -142,9 +147,12 @@ class TaskUI(QtGui.QDialog):
             from sqlalchemy import create_engine
             from sqlalchemy.exc import OperationalError
             try:
-                db_engine = create_engine('%s://%s:%s@%s/%s' % (dataconn['datatype'], dataconn['dbuser'], dataconn['dbpw'], dataconn['dbhost'], dataconn['dbname']))
-                db_engine.connect()
-                QtGui.QMessageBox.about(self, u'数据接口连接测试', u'恭喜，数据库连接成功！')
+                if dataconn['datatype']=='sqlite' and not dataconn['dbname']:
+                    QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'Error: dbfile not found.')
+                else:
+                    db_engine = create_engine('%s://%s:%s@%s/%s' % (dataconn['datatype'], dataconn['dbuser'], dataconn['dbpw'], dataconn['dbhost'], dataconn['dbname']))
+                    db_engine.connect()
+                    QtGui.QMessageBox.about(self, u'数据接口连接测试', u'恭喜，数据库连接成功！')
             except OperationalError, e:
                 code, message = e.orig
                 QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'Error %s: %s' % (code, message))

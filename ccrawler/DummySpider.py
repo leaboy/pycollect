@@ -15,7 +15,7 @@ class DummySpider:
     #start_urls = ['http://disclosure.szse.cn/m/drgg000023.htm', 'http://disclosure.szse.cn/m/drgg000024.htm']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
     workers = 100
-    timeout = 10
+    timeout = 8
 
     def parse(self, response):
         hxs = HtmlSelector(response)
@@ -63,7 +63,8 @@ class DummySpider:
             title = item.select('//td[@class="content"]/strong/text()').extract()
             #message = item.select('//table[@class="pageLighter"]/tr/td').extract()
             if title:
-                print title[0].encode('gbk')
+                print title[0]
+                #print title[0].encode('gb2312', 'backslashreplace')
         #'''
 
     def process_item(self, item):

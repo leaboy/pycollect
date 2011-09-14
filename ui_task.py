@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Task.ui'
 #
-# Created: Thu Sep 08 10:20:15 2011
+# Created: Wed Sep 14 15:53:57 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -108,12 +108,7 @@ class Ui_TaskDialog(object):
         self.label_18 = QtGui.QLabel(self.json_layout)
         self.label_18.setObjectName("label_18")
         self.gridLayout_8.addWidget(self.label_18, 1, 0, 1, 1)
-        self.json_api_param = QtGui.QLineEdit(self.json_layout)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.json_api_param.sizePolicy().hasHeightForWidth())
-        self.json_api_param.setSizePolicy(sizePolicy)
+        self.json_api_param = QtGui.QPlainTextEdit(self.json_layout)
         self.json_api_param.setObjectName("json_api_param")
         self.gridLayout_8.addWidget(self.json_api_param, 1, 1, 1, 1)
         self.verticalLayout_2.addWidget(self.json_layout)
