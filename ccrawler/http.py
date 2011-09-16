@@ -10,13 +10,12 @@ import re, codecs, settings, eventlet
 from common import deprecated_setter, UnicodeDammit, encoding_exists, resolve_encoding
 from headers import Headers
 from eventlet.green import urllib2
-from eventlet import timeout
 
 
 def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS):
     body, status, response = 'None', '200', None
     request = urllib2.Request(url, req_data, req_headers)
-    #t = timeout.Timeout(req_timeout, False)
+    #t = eventlet.Timeout(req_timeout, False)
     try:
         response = urllib2.urlopen(request)
         body = response.read()
@@ -25,7 +24,7 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
         status = e.code
     except urllib2.URLError, e:
         status = 'URLError: %s.' % e.args[0]
-    except timeout.Timeout, e:
+    except eventlet.Timeout, e:
         status = 'Time out.'
     except:
         status = 'URLError: Could not resolve.'

@@ -83,7 +83,7 @@ class HtmlSelector:
         if result:
             try:
                 url = urlparse.urljoin(self.base_url, result)
-                response = Request(unicode_to_str(url), timeout=8)
+                response = Request(unicode_to_str(url), 8)
                 logger.info('Fetched: %s (%s)' % (url, response.status))
                 return self.__class__(response)
             except:

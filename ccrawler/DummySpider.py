@@ -63,7 +63,7 @@ class DummySpider:
             title = item.select('//td[@class="content"]/strong/text()').extract()
             #message = item.select('//table[@class="pageLighter"]/tr/td').extract()
             if title:
-                print title[0]
+                print title
                 #print title[0].encode('gb2312', 'backslashreplace')
         #'''
 
