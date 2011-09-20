@@ -139,6 +139,17 @@ class Func:
         stockList = (isinstance(stockList, list) and [stockList] or [stockList])[0]
         return stockList
 
+    def html_escape(self, text):
+        """Produce entities within text."""
+        html_escape_table = {
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&apos;",
+            ">": "&gt;",
+            "<": "&lt;",
+            }
+        return "".join(html_escape_table.get(c,c) for c in text)
+
 class make_xlat:
     def __init__(self, *args, **kwds):
         self.adict = dict(*args, **kwds)

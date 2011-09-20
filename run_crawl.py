@@ -82,6 +82,7 @@ class DummySpider:
                     param = translate(str(dataconn['apiparam']))
                     request = urllib2.Request(dataconn['apiurl'], param)
                     response = urllib2.urlopen(request)
+                    print response.read()
                 except:
                     logger.error('Connect API error.')
         else:
@@ -118,7 +119,7 @@ class DummySpider:
         res['title'] = res['title'] and res['title'][0] or ''
         if isinstance(res['link'], list) and len(res['link'])>0:
             res['link'] = res['link'][0]
-        res['message'] = res['message'] and res['message'][0] or ''
+        res['message'] = res['message'] and Func.html_escape(res['message'][0]) or ''
         return res
 
 from PyQt4 import QtCore

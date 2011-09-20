@@ -15,7 +15,6 @@ from eventlet.green import urllib2
 def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS, args={}):
     body, status, response = 'None', '200', None
     request = urllib2.Request(url, req_data, req_headers)
-    #t = eventlet.Timeout(req_timeout, False)
     try:
         response = urllib2.urlopen(request)
         body = response.read()
@@ -29,7 +28,6 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
     except:
         status = 'URLError: Could not resolve.'
     finally:
-        #t.cancel()
         return Response(url, status, req_headers, body, request)(args)
 
 
