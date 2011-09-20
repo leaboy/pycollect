@@ -14,28 +14,34 @@ import common, settings
 import eventlet
 from eventlet import queue
 from http import Request, Response
+from base64 import urlsafe_b64encode
 
 import logging, traceback
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
 class CCrawler:
     def __init__(self, spider):
-        self.spider = GetAttr(spider)
-        self.workers = GetAttr(self.spider, 'workers', 100)
-        self.timeout = GetAttr(self.spider, 'timeout', 60)
-        self.start_urls = GetAttr(self.spider, 'start_urls', [])
+        self.spider = self._spider(spider)
+        self.workers = getattr(self.spider, 'workers', 100)
+        self.timeout = getattr(self.spider, 'timeout', 60)
+        self.start_urls = getattr(self.spider, 'start_urls', [])
 
         self.creq = queue.Queue()
         self.cres = queue.Queue()
 
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
-        self.task_done = 0
+        self.args = {}
 
     def dispatcher(self):
         try:
             for url in self.start_urls:
-                self.creq.put(url)
+                if isinstance(url, dict) and 'url' in url:
+                    req_url = url.pop('url')
+                    self.args[urlsafe_b64encode(req_url)] = url
+                else:
+                    req_url = url
+                self.creq.put(req_url)
             for i in range(self.workers):
                 self.pool.spawn_n(self.fetch_coroutine)
         except Exception:
@@ -47,11 +53,11 @@ class CCrawler:
 
     def fetcher(self):
         url = self.creq.get()
-        response = Request(url, self.timeout)
+        args = urlsafe_b64encode(url) in self.args and self.args[urlsafe_b64encode(url)] or {}
+        response = Request(str(url), self.timeout, args=args)
         self.cres.put(response)
         self.pool.spawn_n(self.parse_coroutine)
         logger.info('Fetched: %s (%s)' % (url, response.status))
-        self.task_done += 1
 
     def start(self):
         logger.info("CCrawler start...")
@@ -69,33 +75,23 @@ class CCrawler:
             if item is not None:
                 self._pipeliner(item)
 
+    def _spider(self, spider):
+        try:
+            if not type(spider).__name__=='instance':
+                raise Exception
+            else:
+                return spider
+        except Exception:
+            logger.error('Spider not exist!')
+
     def _parse(self, response):
         '''when spider's parse is empty, then use this replace with do nothing'''
-        parse = GetAttr(self.spider, 'parse', None)
+        parse = getattr(self.spider, 'parse', None)
         if parse:
             return parse(response)
 
     def _pipeliner(self, item):
         '''when spider's process_item is empty, then use this replace with do nothing'''
-        process_item = GetAttr(self.spider, 'process_item', None)
+        process_item = getattr(self.spider, 'process_item', None)
         if process_item:
             process_item(item)
-
-
-
-def GetAttr(object, name=None, default=None):
-    try:
-        if object is None:
-            return default
-        elif not type(object).__name__=='instance':
-            raise Exception
-
-        if name==None:
-            return object
-        else:
-            if not hasattr(object, str(name)):
-                return default
-            else:
-                return getattr(object, name)
-    except Exception:
-        logger.error('Spider not exist!')

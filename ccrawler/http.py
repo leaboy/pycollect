@@ -12,7 +12,7 @@ from headers import Headers
 from eventlet.green import urllib2
 
 
-def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS, **args):
+def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS, args={}):
     body, status, response = 'None', '200', None
     request = urllib2.Request(url, req_data, req_headers)
     #t = eventlet.Timeout(req_timeout, False)
@@ -30,7 +30,7 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
         status = 'URLError: Could not resolve.'
     finally:
         #t.cancel()
-        return Response(url, status, req_headers, body, request)(**args)
+        return Response(url, status, req_headers, body, request)(args)
 
 
 class Response:
@@ -54,8 +54,9 @@ class Response:
         self._set_url(url)
         self.request = request
 
-    def __call__(self,**args):
+    def __call__(self, args):
         self.args = args
+        return self
 
     def _get_body(self):
         return self._body

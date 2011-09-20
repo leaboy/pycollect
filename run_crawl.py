@@ -34,7 +34,7 @@ class DummySpider:
     def parse(self, response):
         res = {}
         res['url'] = response.url
-        print response.args
+        res['stock'] = 'stock' in response.args and response.args['stock'] or 0
 
         hxs = HtmlSelector(response)
         if self.rulemode=='xpath':
@@ -76,18 +76,17 @@ class DummySpider:
         dataconn, dbconn, dbcharset = self.DbConn()
         if dataconn['datatype']=='json':
             for i in result:
-                adict = {'[url]': i['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
+                adict = {'[stock]': i['stock'], '[url]': i['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
                 translate = make_xlat(adict)
                 try:
                     param = translate(str(dataconn['apiparam']))
                     request = urllib2.Request(dataconn['apiurl'], param)
                     response = urllib2.urlopen(request)
-                    print response.read()
                 except:
                     logger.error('Connect API error.')
         else:
             for i in result:
-                adict = {'[url]': i['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
+                adict = {'[stock]': i['stock'], '[url]': i['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
                 translate = make_xlat(adict)
                 comma = (execSQL=='' and [''] or [';'])[0]
                 execSQL += comma + translate(str(self.importSQL))
