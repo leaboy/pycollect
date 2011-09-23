@@ -82,7 +82,6 @@ class DummySpider:
                     param = translate(str(dataconn['apiparam']))
                     request = urllib2.Request(dataconn['apiurl'], param)
                     response = urllib2.urlopen(request)
-                    print response.read()
                 except:
                     logger.error('Connect API error.')
         else:
