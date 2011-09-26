@@ -8,7 +8,7 @@ from ccrawler.selector import HtmlSelector
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
-import time, urllib, urllib2
+import time, urllib, urllib2, urlparse
 from common import Func, make_xlat
 
 class DummySpider:
@@ -117,7 +117,7 @@ class DummySpider:
     def result_check(self, res):
         res['title'] = res['title'] and res['title'][0] or ''
         if isinstance(res['link'], list) and len(res['link'])>0:
-            res['link'] = res['link'][0]
+            res['link'] = urlparse.urljoin(res['url'], res['link'][0])
         res['message'] = res['message'] and Func.html_escape(res['message'][0]) or ''
         return res
 

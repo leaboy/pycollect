@@ -15,6 +15,8 @@ import eventlet
 from eventlet import queue
 from http import Request, Response
 from base64 import urlsafe_b64encode
+from records import init_records
+
 
 import logging, traceback
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
@@ -32,6 +34,8 @@ class CCrawler:
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
         self.args = {}
+
+        self.records = init_records()
 
     def dispatcher(self):
         try:
@@ -71,6 +75,7 @@ class CCrawler:
     def parse_coroutine(self):
         while self.creq.empty() and not self.cres.empty():
             response = self.cres.get()
+            print response.status
             item = self._parse(response)
             if item is not None:
                 self._pipeliner(item)
@@ -95,3 +100,6 @@ class CCrawler:
         process_item = getattr(self.spider, 'process_item', None)
         if process_item:
             process_item(item)
+
+    def _recorder(self):
+        pass

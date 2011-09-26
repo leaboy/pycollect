@@ -15,8 +15,8 @@ from sqlalchemy.exc import OperationalError
 
 class DummySpider:
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sh']
-    start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sz', 'http://ustock.finance.ifeng.com/stock_list.php?type=gem']
-    #start_urls = ['http://www.blueidea.com/photo/gallery/']
+    #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sz', 'http://ustock.finance.ifeng.com/stock_list.php?type=gem']
+    start_urls = ['http://www.blueidea.com/photo/gallery/']
     #start_urls = ['http://disclosure.szse.cn/m/drgg000023.htm', 'http://disclosure.szse.cn/m/drgg000024.htm']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
     workers = 100
@@ -34,13 +34,13 @@ class DummySpider:
             print title
         '''
 
-        '''
+        #'''
         itemlist = hxs.re('<tr class=\"(border|pagelight)\">.*?<td nowrap>(.*?)<\/td>')
         linkitem = itemlist.re('<a[^>]*href=\"([^\s\"]+)\"[^>]*>[^<]*<\/a>').Link()
         for item in linkitem:
             title = item.re('<td class="content"><strong>(.*?)</strong></td>').extract()
             print title
-        '''
+        #'''
 
         '''
         itemlist = hxs.re('<tr class=\"(border|pagelight)\">.*?<td nowrap>(.*?)<\/td>')
@@ -72,6 +72,7 @@ class DummySpider:
                 #print title[0].encode('gb2312', 'backslashreplace')
         '''
 
+        '''
         itemlist = hxs.select('//ul[@id="stocklist"]/li')
         for item in itemlist:
             info = item.select('a/text()').extract()
@@ -87,6 +88,7 @@ class DummySpider:
                 except OperationalError, e:
                     code, message = e.orig
                     logger.error('Error %s: %s.' % (code, message))
+        '''
 
     def process_item(self, item):
         for i in item:
