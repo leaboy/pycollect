@@ -10,12 +10,13 @@
 
 from __future__ import with_statement
 
+import hashlib
 import common, settings
 import eventlet
 from eventlet import queue
 from http import Request, Response
 from base64 import urlsafe_b64encode
-from records import init_records
+from records import init_record
 
 
 import logging, traceback
@@ -24,6 +25,8 @@ logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEB
 class CCrawler:
     def __init__(self, spider):
         self.spider = self._spider(spider)
+        self.taskid = getattr(self.spider, 'taskid', 0)
+        self.recover = getattr(self.spider, 'recover', True)
         self.workers = getattr(self.spider, 'workers', 100)
         self.timeout = getattr(self.spider, 'timeout', 60)
         self.start_urls = getattr(self.spider, 'start_urls', [])
@@ -34,8 +37,6 @@ class CCrawler:
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
         self.args = {}
-
-        self.records = init_records()
 
     def dispatcher(self):
         try:
@@ -57,7 +58,8 @@ class CCrawler:
 
     def fetcher(self):
         url = self.creq.get()
-        args = urlsafe_b64encode(url) in self.args and self.args[urlsafe_b64encode(url)] or {}
+        args = urlsafe_b64encode(url) in self.args \
+            and self.args[urlsafe_b64encode(url)] or {}
         response = Request(str(url), self.timeout, args=args)
         self.cres.put(response)
         self.pool.spawn_n(self.parse_coroutine)
@@ -75,10 +77,21 @@ class CCrawler:
     def parse_coroutine(self):
         while self.creq.empty() and not self.cres.empty():
             response = self.cres.get()
-            print response.status
-            item = self._parse(response)
-            if item is not None:
-                self._pipeliner(item)
+            if response.status is not '200':
+                continue
+            res_hash = hashlib.md5(response.body).hexdigest().upper()
+            record, session = init_record(self.taskid)
+            db_record = session.query(record.hash).filter(record.hash == res_hash).first()
+            if db_record and not self.recover:
+                continue
+            else:
+                item = self._parse(response)
+                if item is not None:
+                    self._pipeliner(item)
+                if not db_record:
+                    query = record(res_hash)
+                    session.add(query)
+                    session.commit()
 
     def _spider(self, spider):
         try:
@@ -100,6 +113,3 @@ class CCrawler:
         process_item = getattr(self.spider, 'process_item', None)
         if process_item:
             process_item(item)
-
-    def _recorder(self):
-        pass

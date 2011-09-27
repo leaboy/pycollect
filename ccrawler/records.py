@@ -14,29 +14,24 @@ from sqlalchemy import Table, Column, Integer, String, MetaData
 from sqlalchemy.orm import mapper, scoped_session, sessionmaker
 
 class Records(object):
-    def __init__(self, url):
-        self.url = url
+    def __init__(self, hash):
+        self.hash = hash
 
     def __repr__(self):
         return "<Records('%s')>" % (self.url)
 
 def init_record(tname):
     tabal_name = hashlib.md5(str(tname)).hexdigest().upper()
-    engine = create_engine('sqlite:///records.db', echo=True)
+    engine = create_engine('sqlite:///records.db')
     metadata = MetaData()
 
     record_table = Table(tabal_name, metadata,
         Column('id', Integer, primary_key=True),
-        Column('url', String, index=True)
+        Column('hash', String, index=True)
     )
+
     metadata.create_all(engine)
-    return engine, record_table
+    mapper(Records, record_table)
+    session = scoped_session(sessionmaker(bind=engine))
 
-engine, table = init_record('1')
-mapper(Records, table)
-
-Session = scoped_session(sessionmaker(bind=engine))
-q = Records('http://www.baidu.com')
-Session.commit()
-
-Session.query(table).all()
+    return Records, session

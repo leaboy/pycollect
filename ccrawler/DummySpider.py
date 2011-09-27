@@ -16,14 +16,16 @@ from sqlalchemy.exc import OperationalError
 class DummySpider:
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sh']
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sz', 'http://ustock.finance.ifeng.com/stock_list.php?type=gem']
-    start_urls = ['http://www.blueidea.com/photo/gallery/']
+    start_urls = ['http://www.blueidea.com/photo/gallery/?q=test&flag=0456454']
     #start_urls = ['http://disclosure.szse.cn/m/drgg000023.htm', 'http://disclosure.szse.cn/m/drgg000024.htm']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
     workers = 100
     timeout = 8
+    #recover = False
 
     def parse(self, response):
         hxs = HtmlSelector(response)
+        print response.args
         '''
         Usage re
         '''
@@ -39,7 +41,7 @@ class DummySpider:
         linkitem = itemlist.re('<a[^>]*href=\"([^\s\"]+)\"[^>]*>[^<]*<\/a>').Link()
         for item in linkitem:
             title = item.re('<td class="content"><strong>(.*?)</strong></td>').extract()
-            print title
+            #print title
         #'''
 
         '''

@@ -6,7 +6,9 @@
 #
 # GNU Free Documentation License 1.3
 
-import re, codecs, settings, eventlet
+import re, codecs, hashlib
+import settings, eventlet
+from urlparse import urlparse
 from common import deprecated_setter, UnicodeDammit, encoding_exists, resolve_encoding
 from headers import Headers
 from eventlet.green import urllib2
@@ -19,6 +21,14 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
         response = urllib2.urlopen(request)
         body = response.read()
         response.close()
+        parse_url = urlparse(url)
+        params = {}
+        for part in parse_url[4].split('&'):
+            if part.find('=') is not -1:
+                k, v = part.split('=')
+            else:
+                k, v = part, ''
+            params['[%s]' % k] = v
     except urllib2.HTTPError, e:
         status = e.code
     except urllib2.URLError, e:
@@ -28,7 +38,7 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
     except:
         status = 'URLError: Could not resolve.'
     finally:
-        return Response(url, status, req_headers, body, request)(args)
+        return Response(url, status, req_headers, body, request)(dict(args, **params))
 
 
 class Response:
