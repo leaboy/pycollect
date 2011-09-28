@@ -15,8 +15,9 @@ import common, settings
 import eventlet
 from eventlet import queue
 from http import Request, Response
-from base64 import urlsafe_b64encode
-from records import init_record
+
+from sqlalchemy.orm import mapper
+from records import Records, init_record
 
 
 import logging, traceback
@@ -36,17 +37,14 @@ class CCrawler:
 
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
-        self.args = {}
+
+        record_tb, self.session = init_record(self.taskid)
+        mapper(Records, record_tb)
 
     def dispatcher(self):
         try:
             for url in self.start_urls:
-                if isinstance(url, dict) and 'url' in url:
-                    req_url = url.pop('url')
-                    self.args[urlsafe_b64encode(req_url)] = url
-                else:
-                    req_url = url
-                self.creq.put(req_url)
+                self.creq.put(url)
             for i in range(self.workers):
                 self.pool.spawn_n(self.fetch_coroutine)
         except Exception:
@@ -58,9 +56,7 @@ class CCrawler:
 
     def fetcher(self):
         url = self.creq.get()
-        args = urlsafe_b64encode(url) in self.args \
-            and self.args[urlsafe_b64encode(url)] or {}
-        response = Request(str(url), self.timeout, args=args)
+        response = Request(str(url), self.timeout)
         self.cres.put(response)
         self.pool.spawn_n(self.parse_coroutine)
         logger.info('Fetched: %s (%s)' % (url, response.status))
@@ -75,23 +71,27 @@ class CCrawler:
         logger.info("stopping crawl...\n")
 
     def parse_coroutine(self):
-        while self.creq.empty() and not self.cres.empty():
-            response = self.cres.get()
-            if response.status is not '200':
-                continue
-            res_hash = hashlib.md5(response.body).hexdigest().upper()
-            record, session = init_record(self.taskid)
-            db_record = session.query(record.hash).filter(record.hash == res_hash).first()
-            if db_record and not self.recover:
-                continue
-            else:
-                item = self._parse(response)
-                if item is not None:
-                    self._pipeliner(item)
-                if not db_record:
-                    query = record(res_hash)
-                    session.add(query)
-                    session.commit()
+        '''
+        response = self.cres.get()
+        item = self._parse(response)
+        if item is not None:
+            self._pipeliner(item)
+        '''
+        response = self.cres.get()
+        if response.status is not '200':
+            return
+        res_hash = hashlib.md5(response.body).hexdigest().upper()
+        db_record = self.session.query(Records.hash).filter(Records.hash == res_hash).first()
+        if db_record and not self.recover:
+            return
+        else:
+            item = self._parse(response)
+            if item is not None:
+                self._pipeliner(item)
+            if not db_record:
+                query = Records(res_hash)
+                self.session.add(query)
+                self.session.commit()
 
     def _spider(self, spider):
         try:
@@ -104,9 +104,9 @@ class CCrawler:
 
     def _parse(self, response):
         '''when spider's parse is empty, then use this replace with do nothing'''
-        parse = getattr(self.spider, 'parse', None)
-        if parse:
-            return parse(response)
+        item_parse = getattr(self.spider, 'parse', None)
+        if item_parse:
+            return item_parse(response)
 
     def _pipeliner(self, item):
         '''when spider's process_item is empty, then use this replace with do nothing'''

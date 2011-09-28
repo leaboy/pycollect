@@ -14,8 +14,8 @@ from headers import Headers
 from eventlet.green import urllib2
 
 
-def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS, args={}):
-    body, status, response = 'None', '200', None
+def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS):
+    body, status, response, params = 'None', '200', None, {}
     request = urllib2.Request(url, req_data, req_headers)
     try:
         response = urllib2.urlopen(request)
@@ -28,7 +28,7 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
                 k, v = part.split('=')
             else:
                 k, v = part, ''
-            params['[%s]' % k] = v
+            params[k] = v
     except urllib2.HTTPError, e:
         status = e.code
     except urllib2.URLError, e:
@@ -38,7 +38,7 @@ def Request(url, req_timeout=60, req_data=None, req_headers=settings.DEFAULT_REQ
     except:
         status = 'URLError: Could not resolve.'
     finally:
-        return Response(url, status, req_headers, body, request)(dict(args, **params))
+        return Response(url, status, req_headers, body, request)(params)
 
 
 class Response:

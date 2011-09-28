@@ -18,7 +18,7 @@ class Records(object):
         self.hash = hash
 
     def __repr__(self):
-        return "<Records('%s')>" % (self.url)
+        return "<Records('%s')>" % (self.hash)
 
 def init_record(tname):
     tabal_name = hashlib.md5(str(tname)).hexdigest().upper()
@@ -31,7 +31,6 @@ def init_record(tname):
     )
 
     metadata.create_all(engine)
-    mapper(Records, record_table)
     session = scoped_session(sessionmaker(bind=engine))
 
-    return Records, session
+    return record_table, session

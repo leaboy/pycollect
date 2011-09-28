@@ -16,8 +16,8 @@ from sqlalchemy.exc import OperationalError
 class DummySpider:
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sh']
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sz', 'http://ustock.finance.ifeng.com/stock_list.php?type=gem']
-    start_urls = ['http://www.blueidea.com/photo/gallery/?q=test&flag=0456454']
-    #start_urls = ['http://disclosure.szse.cn/m/drgg000023.htm', 'http://disclosure.szse.cn/m/drgg000024.htm']
+    #start_urls = ['http://www.blueidea.com/photo/gallery/?q=test&flag=0456454']
+    start_urls = ['http://disclosure.szse.cn/m/drgg000001.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000002.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000003.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000004.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000005.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000006.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000007.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000008.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000009.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000010.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000011.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000012.htm?type=sz&flag=notice']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
     workers = 100
     timeout = 8
@@ -36,13 +36,13 @@ class DummySpider:
             print title
         '''
 
-        #'''
+        '''
         itemlist = hxs.re('<tr class=\"(border|pagelight)\">.*?<td nowrap>(.*?)<\/td>')
         linkitem = itemlist.re('<a[^>]*href=\"([^\s\"]+)\"[^>]*>[^<]*<\/a>').Link()
         for item in linkitem:
             title = item.re('<td class="content"><strong>(.*?)</strong></td>').extract()
-            #print title
-        #'''
+            print title
+        '''
 
         '''
         itemlist = hxs.re('<tr class=\"(border|pagelight)\">.*?<td nowrap>(.*?)<\/td>')

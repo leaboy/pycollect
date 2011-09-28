@@ -102,7 +102,7 @@ class Func:
                 stockList = self.getListStockNum(stockdata)
                 for stock in stockList:
                     for url in page_urllist:
-                        listurl.append({'url': url.replace('[stock]', stock), 'stock': stock})
+                        listurl.append(url.replace('[stock]', stock))
             else:
                 listurl = page_urllist
 
@@ -110,7 +110,7 @@ class Func:
             for i in manualUrl:
                 listurl.append(i)
 
-        return listurl
+        return map(str, listurl)
 
     def getListPageNum(self, pagestart, pageend, wildcardlen):
         pagestart = (isinstance(pagestart, int) and [pagestart] or [0])[0]
