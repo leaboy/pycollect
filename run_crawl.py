@@ -30,11 +30,12 @@ class DummySpider:
         self.workers = robot.threads
         self.timeout = robot.timeout
         self.parent = parent
+        #self.recover = False
 
     def parse(self, response):
         res = {}
+        args = response.args
         res['url'] = response.url
-        res['args'] = response.args
         res['runtime'] = time.mktime(time.localtime())
 
         hxs = HtmlSelector(response)
@@ -42,6 +43,7 @@ class DummySpider:
             itemlist = hxs.select(self.subjecturlrule)
             if self.linkmode:
                 for item in itemlist:
+                    res['args'] = args
                     res['title'] = item.select(self.subjectrule).extract()
                     res['link'] = item.select(self.subjecturllinkrule).extract()
                     res['message'] = ''
@@ -50,6 +52,7 @@ class DummySpider:
                 pageitem = itemlist.select(self.subjecturllinkrule).Link()
                 for item in pageitem:
                     if item:
+                        res['args'] = args
                         res['link'] = item.base_url
                         res['title'] = item.select(self.subjectrule).extract()
                         res['message'] = item.select(self.messagerule).extract()
@@ -59,6 +62,7 @@ class DummySpider:
             itemlist = hxs.re(self.subjecturlrule)
             if self.linkmode:
                 for item in itemlist:
+                    res['args'] = args
                     res['title'] = item.re(self.subjectrule).extract()
                     res['link'] = item.re(self.subjecturllinkrule).extract()
                     res['message'] = ''
@@ -67,6 +71,7 @@ class DummySpider:
                 pageitem = itemlist.re(self.subjecturllinkrule).Link()
                 for item in pageitem:
                     if item:
+                        res['args'] = args
                         res['link'] = item.base_url
                         res['title'] = item.re(self.subjectrule).extract()
                         res['message'] = item.re(self.messagerule).extract()
@@ -77,23 +82,26 @@ class DummySpider:
         dataconn, dbconn, dbcharset = self.DbConn()
         if dataconn['datatype']=='json':
             for i in result:
-                adict = {'[url]': i['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
-                adict = dict(adict, **i['args'])
-                print adict
-                translate = make_xlat(adict)
+                args = i.pop('args')
                 try:
-                    param = translate(str(dataconn['apiparam']))
-                    request = urllib2.Request(dataconn['apiurl'], param)
+                    param = self.dict_value(dict(i, **args), dataconn['apiparam'], dbcharset)
+                    param_dict = dict([
+                        (param_item[0].strip(), param_item[1].strip())
+                        for param_item
+                        in [
+                            part.split('=', 1)
+                            for part
+                            in param.splitlines()]
+                        if len(param_item) == 2])
+                    request = urllib2.Request(dataconn['apiurl'], urllib.urlencode(param_dict))
                     response = urllib2.urlopen(request)
                 except:
                     logger.error('Connect API error.')
         else:
             for i in result:
-                adict = {'[url]': i['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
-                adict = dict(adict, **i['args'])
-                translate = make_xlat(adict)
+                args = i.pop('args')
                 comma = (execSQL=='' and [''] or [';'])[0]
-                execSQL += comma + translate(str(self.importSQL))
+                execSQL += comma + self.dict_value(dict(i, **args), self.importSQL, dbcharset)
 
             if len(execSQL)>0 and dbconn:
                 try:
@@ -125,11 +133,14 @@ class DummySpider:
         res['message'] = res['message'] and Func.html_escape(res['message'][0]) or ''
         return res
 
-    def dictvalue(self, adict, strr):
-        adict = {'[url]': adict['url'], '[link]': i['link'].encode(dbcharset, 'backslashreplace'), '[title]': i['title'].encode(dbcharset, 'backslashreplace'), '[message]': i['message'].encode(dbcharset, 'backslashreplace'), '[runtime]': time.mktime(time.localtime())}
+    def dict_value(self, adict, strr, dbcharset):
+        adict['link'] = adict['link'].encode(dbcharset, 'backslashreplace')
+        adict['title'] = adict['title'].encode(dbcharset, 'backslashreplace')
+        adict['message'] = adict['message'].encode(dbcharset, 'backslashreplace')
         adict = dict([('[%s]' % k, adict[k]) for k in adict])
         translate = make_xlat(adict)
-        return translate(strr)
+        return translate(str(strr))
+
 
 from PyQt4 import QtCore
 from pycollect import Task_Flag_Waiting, Task_Flag_Runing, Task_Flag_Stoped, Task_Flag_Failed

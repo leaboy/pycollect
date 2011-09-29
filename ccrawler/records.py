@@ -13,13 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData
 from sqlalchemy.orm import mapper, scoped_session, sessionmaker
 
-class Records(object):
-    def __init__(self, hash):
-        self.hash = hash
-
-    def __repr__(self):
-        return "<Records('%s')>" % (self.hash)
-
 def init_record(tname):
     tabal_name = hashlib.md5(str(tname)).hexdigest().upper()
     engine = create_engine('sqlite:///records.db')
@@ -30,7 +23,15 @@ def init_record(tname):
         Column('hash', String, index=True)
     )
 
+    class Records(object):
+        def __init__(self, hash):
+            self.hash = hash
+
+        def __repr__(self):
+            return "<Records('%s')>" % (self.hash)
+
+    mapper(Records, record_table)
     metadata.create_all(engine)
     session = scoped_session(sessionmaker(bind=engine))
 
-    return record_table, session
+    return Records, session

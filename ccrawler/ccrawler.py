@@ -17,7 +17,7 @@ from eventlet import queue
 from http import Request, Response
 
 from sqlalchemy.orm import mapper
-from records import Records, init_record
+from records import init_record
 
 
 import logging, traceback
@@ -38,8 +38,7 @@ class CCrawler:
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
 
-        record_tb, self.session = init_record(self.taskid)
-        mapper(Records, record_tb)
+        self.records, self.session = init_record(self.taskid)
 
     def dispatcher(self):
         try:
@@ -71,17 +70,11 @@ class CCrawler:
         logger.info("stopping crawl...\n")
 
     def parse_coroutine(self):
-        '''
-        response = self.cres.get()
-        item = self._parse(response)
-        if item is not None:
-            self._pipeliner(item)
-        '''
         response = self.cres.get()
         if response.status is not '200':
             return
         res_hash = hashlib.md5(response.body).hexdigest().upper()
-        db_record = self.session.query(Records.hash).filter(Records.hash == res_hash).first()
+        db_record = self.session.query(self.records.hash).filter(self.records.hash==res_hash).first()
         if db_record and not self.recover:
             return
         else:
@@ -89,7 +82,7 @@ class CCrawler:
             if item is not None:
                 self._pipeliner(item)
             if not db_record:
-                query = Records(res_hash)
+                query = self.records(res_hash)
                 self.session.add(query)
                 self.session.commit()
 
