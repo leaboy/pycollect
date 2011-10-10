@@ -8,7 +8,7 @@ from ccrawler.selector import HtmlSelector
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
-import time, urllib, urllib2, urlparse
+import time, urllib, urllib2, urlparse, base64
 from common import Func, make_xlat
 
 class DummySpider:
@@ -83,8 +83,14 @@ class DummySpider:
         if dataconn['datatype']=='json':
             for i in result:
                 args = i.pop('args')
+                '''
+                fp = open(base64.b64encode(i['link']), 'w')
+                fp.write(i['message'].encode('gb2312', 'backslashreplace'))
+                fp.close()
+                '''
                 try:
                     param = self.dict_value(dict(i, **args), dataconn['apiparam'], dbcharset)
+
                     param_dict = dict([
                         (param_item[0].strip(), param_item[1].strip())
                         for param_item
@@ -93,6 +99,11 @@ class DummySpider:
                             for part
                             in param.splitlines()]
                         if len(param_item) == 2])
+
+                    fp = open(base64.b64encode(param_dict['link']), 'w')
+                    fp.write(param_dict['message'])
+                    fp.close()
+
                     request = urllib2.Request(dataconn['apiurl'], urllib.urlencode(param_dict))
                     response = urllib2.urlopen(request)
                 except:

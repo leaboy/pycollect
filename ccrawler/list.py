@@ -15,12 +15,9 @@ class HtmlSelectorList(list):
     def extract(self):
         return [x.extract() for x in self]
 
-    def mapcls(self, cls):
-        return cls.Link()
-
     def Link(self):
-        pool = eventlet.GreenPool()
-        return [result for result in pool.imap(self.mapcls, self)]
+        return [x.Link() for x in self]
+
 
     def re(self, regex):
         return self.__class__(flatten([x.re(regex) for x in self]))

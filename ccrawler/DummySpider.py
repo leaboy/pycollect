@@ -13,23 +13,39 @@ logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEB
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
+import base64
+
 class DummySpider:
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sh']
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sz', 'http://ustock.finance.ifeng.com/stock_list.php?type=gem']
-    #start_urls = ['http://www.blueidea.com/photo/gallery/?q=test&flag=0456454']
+    #start_urls = ['http://www.blueidea.com/photo/gallery', 'http://www.blueidea.com/photo/gallery/index_2.asp', 'http://www.blueidea.com/photo/gallery/index_3.asp', 'http://www.blueidea.com/photo/skill/index.asp', 'http://www.blueidea.com/photo/skill/index_2.asp', 'http://www.blueidea.com/photo/skill/index_3.asp', 'http://www.blueidea.com/photo/skill/index_4.asp', 'http://www.blueidea.com/photo/skill/index_5.asp', 'http://www.blueidea.com/photo/skill/index_6.asp', 'http://www.blueidea.com/photo/camera/index.asp', 'http://www.blueidea.com/photo/camera/index_2.asp']
     #start_urls = ['http://disclosure.szse.cn/m/drgg000001.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000002.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000003.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000004.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000005.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000006.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000007.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000008.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000009.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000010.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000011.htm?type=sz&flag=notice', 'http://disclosure.szse.cn/m/drgg000012.htm?type=sz&flag=notice']
-    start_urls = ['http://www.sse.com.cn/sseportal/webapp/datapresent/SSEQueryCompanyStatement?PRODUCTID=600010&COMPANY_CODE=600010&REPORTTYPE2=&REPORTTYPE=ALL&PAGE=1']
+    #start_urls = ['http://www.sse.com.cn/sseportal/webapp/datapresent/SSEQueryCompanyStatement?PRODUCTID=600010&COMPANY_CODE=600010&REPORTTYPE2=&REPORTTYPE=ALL&PAGE=1']
+    #start_urls = ['http://money.finance.sina.com.cn/corp/go.php/vCB_AllNewsStock/symbol/sh600299.phtml']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
+    start_urls = ['http://money.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=sz000001&Page=1']
     workers = 100
     timeout = 8
     #recover = False
 
     def parse(self, response):
         hxs = HtmlSelector(response)
-        #//td[class="content"]/table[bordercolor="#000000"]/tr[bgcolor="#F4F4F4"]/td[1]
-        itemlist = hxs.select('//td[@class="content"]/table[@bordercolor="#000000"]/tr[@bgcolor="#F4F4F4"]/td[1]')
-        for item in itemlist:
-            print item.select('a/@href').extract()
+
+        #'''
+        #//td[@class="content"]/table[@bordercolor="#000000"]/tr[@bgcolor="#F4F4F4"]/td[1]
+        #//td[@class="datelist"]/ul
+        itemlist = hxs.select('//div[@class="datelist"]/ul/a')
+        linkitem = itemlist.select('@href').Link()
+        for item in linkitem:
+            #print item.select('//div[@class="blkContainerSblk"]/h1[@id="artibodyTitle"]/text()').extract()
+            title = item.select('//div[@class="blkContainerSblk"]/h1[@id="artibodyTitle"]/text()').extract()
+            content = item.select('//div[@class="blkContainerSblkCon"]').extract()
+            if len(content)>0:
+                fp = open(base64.b64encode(item.base_url), 'w')
+                fp.write(content[0].encode('gb2312', 'backslashreplace'))
+                fp.close()
+        #'''
+
         '''
         Usage re
         '''
