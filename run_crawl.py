@@ -9,7 +9,7 @@ import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
 import time, urllib, urllib2, urlparse, base64
-from common import Func, make_xlat
+from common import Func
 
 class DummySpider:
     def __init__(self, task, parent):
@@ -83,26 +83,17 @@ class DummySpider:
         if dataconn['datatype']=='json':
             for i in result:
                 args = i.pop('args')
-                '''
-                fp = open(base64.b64encode(i['link']), 'w')
-                fp.write(i['message'].encode('gb2312', 'backslashreplace'))
-                fp.close()
-                '''
                 try:
-                    param = self.dict_value(dict(i, **args), dataconn['apiparam'], dbcharset)
-
                     param_dict = dict([
                         (param_item[0].strip(), param_item[1].strip())
                         for param_item
                         in [
                             part.split('=', 1)
                             for part
-                            in param.splitlines()]
+                            in dataconn['apiparam'].splitlines()]
                         if len(param_item) == 2])
 
-                    fp = open(base64.b64encode(param_dict['link']), 'w')
-                    fp.write(param_dict['message'])
-                    fp.close()
+                    param_dict = self.dict_value(dict(i, **args), param_dict, dbcharset)
 
                     request = urllib2.Request(dataconn['apiurl'], urllib.urlencode(param_dict))
                     response = urllib2.urlopen(request)
@@ -141,16 +132,19 @@ class DummySpider:
         res['title'] = res['title'] and res['title'][0] or ''
         if isinstance(res['link'], list) and len(res['link'])>0:
             res['link'] = urlparse.urljoin(res['url'], res['link'][0])
-        res['message'] = res['message'] and Func.html_escape(res['message'][0]) or ''
+        res['message'] = res['message'] and res['message'][0] or ''
         return res
 
-    def dict_value(self, adict, strr, dbcharset):
+    def dict_value(self, adict, paramdict, dbcharset):
         adict['link'] = adict['link'].encode(dbcharset, 'backslashreplace')
         adict['title'] = adict['title'].encode(dbcharset, 'backslashreplace')
         adict['message'] = adict['message'].encode(dbcharset, 'backslashreplace')
         adict = dict([('[%s]' % k, adict[k]) for k in adict])
-        translate = make_xlat(adict)
-        return translate(str(strr))
+        for i in paramdict:
+            uitem = paramdict[i]
+            if uitem in adict:
+                paramdict[i] = adict[uitem]
+        return paramdict
 
 
 from PyQt4 import QtCore
