@@ -30,7 +30,7 @@ class DummySpider:
         self.workers = robot.threads
         self.timeout = robot.timeout
         self.parent = parent
-        #self.recover = False
+        self.recover = False
 
     def parse(self, response):
         res = {}

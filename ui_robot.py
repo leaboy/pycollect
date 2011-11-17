@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Robot.ui'
 #
-# Created: Mon Aug 29 11:20:02 2011
+# Created: Thu Nov 17 16:34:10 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_RobotDialog(object):
     def setupUi(self, RobotDialog):
         RobotDialog.setObjectName("RobotDialog")
-        RobotDialog.resize(537, 462)
+        RobotDialog.resize(537, 536)
         self.verticalLayout = QtGui.QVBoxLayout(RobotDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.tabWidget = QtGui.QTabWidget(RobotDialog)
@@ -283,13 +283,13 @@ class Ui_RobotDialog(object):
         self.gridLayout_8.addWidget(self.subjectrule, 3, 1, 1, 4)
         self.label_41 = QtGui.QLabel(self.groupBox_9)
         self.label_41.setObjectName("label_41")
-        self.gridLayout_8.addWidget(self.label_41, 4, 0, 1, 1)
+        self.gridLayout_8.addWidget(self.label_41, 5, 0, 1, 1)
         self.messagerule = QtGui.QPlainTextEdit(self.groupBox_9)
         self.messagerule.setObjectName("messagerule")
-        self.gridLayout_8.addWidget(self.messagerule, 4, 1, 1, 4)
+        self.gridLayout_8.addWidget(self.messagerule, 5, 1, 1, 4)
         self.label_43 = QtGui.QLabel(self.groupBox_9)
         self.label_43.setObjectName("label_43")
-        self.gridLayout_8.addWidget(self.label_43, 5, 0, 1, 1)
+        self.gridLayout_8.addWidget(self.label_43, 6, 0, 1, 1)
         self.rule_mode_regex = QtGui.QRadioButton(self.groupBox_9)
         self.rule_mode_regex.setObjectName("rule_mode_regex")
         self.gridLayout_8.addWidget(self.rule_mode_regex, 0, 2, 1, 1)
@@ -304,7 +304,7 @@ class Ui_RobotDialog(object):
         sizePolicy.setHeightForWidth(self.reversemode.sizePolicy().hasHeightForWidth())
         self.reversemode.setSizePolicy(sizePolicy)
         self.reversemode.setObjectName("reversemode")
-        self.gridLayout_8.addWidget(self.reversemode, 5, 1, 1, 1)
+        self.gridLayout_8.addWidget(self.reversemode, 6, 1, 1, 1)
         self.linkmode = QtGui.QCheckBox(self.groupBox_9)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -312,7 +312,7 @@ class Ui_RobotDialog(object):
         sizePolicy.setHeightForWidth(self.linkmode.sizePolicy().hasHeightForWidth())
         self.linkmode.setSizePolicy(sizePolicy)
         self.linkmode.setObjectName("linkmode")
-        self.gridLayout_8.addWidget(self.linkmode, 5, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.linkmode, 6, 2, 1, 1)
         self.downloadmode = QtGui.QCheckBox(self.groupBox_9)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -320,9 +320,15 @@ class Ui_RobotDialog(object):
         sizePolicy.setHeightForWidth(self.downloadmode.sizePolicy().hasHeightForWidth())
         self.downloadmode.setSizePolicy(sizePolicy)
         self.downloadmode.setObjectName("downloadmode")
-        self.gridLayout_8.addWidget(self.downloadmode, 5, 3, 1, 1)
+        self.gridLayout_8.addWidget(self.downloadmode, 6, 3, 1, 1)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_8.addItem(spacerItem, 5, 4, 1, 1)
+        self.gridLayout_8.addItem(spacerItem, 6, 4, 1, 1)
+        self.label_2 = QtGui.QLabel(self.groupBox_9)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout_8.addWidget(self.label_2, 4, 0, 1, 1)
+        self.timerule = QtGui.QPlainTextEdit(self.groupBox_9)
+        self.timerule.setObjectName("timerule")
+        self.gridLayout_8.addWidget(self.timerule, 4, 1, 1, 4)
         self.horizontalLayout_9.addLayout(self.gridLayout_8)
         self.verticalLayout_8.addWidget(self.groupBox_9)
         self.tabWidget.addTab(self.tab_5, "")
@@ -378,6 +384,7 @@ class Ui_RobotDialog(object):
         self.reversemode.setText(QtGui.QApplication.translate("RobotDialog", "倒序模式", None, QtGui.QApplication.UnicodeUTF8))
         self.linkmode.setText(QtGui.QApplication.translate("RobotDialog", "列表模式", None, QtGui.QApplication.UnicodeUTF8))
         self.downloadmode.setText(QtGui.QApplication.translate("RobotDialog", "下载模式", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("RobotDialog", "发布时间规则", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), QtGui.QApplication.translate("RobotDialog", "采集规则", None, QtGui.QApplication.UnicodeUTF8))
         self.robotSave.setText(QtGui.QApplication.translate("RobotDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
 

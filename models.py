@@ -29,6 +29,7 @@ class Robot(Base):
     subjecturlrule      = Column(Text, nullable=False)
     subjecturllinkrule  = Column(Text, nullable=False)
     subjectrule         = Column(Text, nullable=False)
+    timerule            = Column(Text, nullable=False)
     messagerule         = Column(Text, nullable=False)
     reversemode         = Column(SmallInteger, default=0)
     rulemode            = Column(String(6), default='xpath')
