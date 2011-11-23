@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Task.ui'
 #
-# Created: Wed Sep 14 15:53:57 2011
+# Created: Wed Nov 23 14:33:33 2011
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -93,6 +93,21 @@ class Ui_TaskDialog(object):
         self.verticalLayout_2 = QtGui.QVBoxLayout()
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.txt_layout = QtGui.QWidget(self.groupBox_2)
+        self.txt_layout.setObjectName("txt_layout")
+        self.gridLayout_10 = QtGui.QGridLayout(self.txt_layout)
+        self.gridLayout_10.setMargin(0)
+        self.gridLayout_10.setObjectName("gridLayout_10")
+        self.label_8 = QtGui.QLabel(self.txt_layout)
+        self.label_8.setMinimumSize(QtCore.QSize(75, 0))
+        self.label_8.setObjectName("label_8")
+        self.gridLayout_10.addWidget(self.label_8, 0, 0, 1, 1)
+        self.txt_path = QtGui.QLineEdit(self.txt_layout)
+        self.txt_path.setObjectName("txt_path")
+        self.gridLayout_10.addWidget(self.txt_path, 0, 1, 1, 1)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_10.addItem(spacerItem, 1, 0, 1, 1)
+        self.verticalLayout_2.addWidget(self.txt_layout)
         self.json_layout = QtGui.QWidget(self.groupBox_2)
         self.json_layout.setObjectName("json_layout")
         self.gridLayout_8 = QtGui.QGridLayout(self.json_layout)
@@ -116,7 +131,6 @@ class Ui_TaskDialog(object):
         self.sqlite_layout.setObjectName("sqlite_layout")
         self.gridLayout_2 = QtGui.QGridLayout(self.sqlite_layout)
         self.gridLayout_2.setMargin(0)
-        self.gridLayout_2.setSpacing(6)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.sqlite_dbname = QtGui.QLineEdit(self.sqlite_layout)
         self.sqlite_dbname.setObjectName("sqlite_dbname")
@@ -130,7 +144,6 @@ class Ui_TaskDialog(object):
         self.mysql_layout.setObjectName("mysql_layout")
         self.gridLayout_4 = QtGui.QGridLayout(self.mysql_layout)
         self.gridLayout_4.setMargin(0)
-        self.gridLayout_4.setSpacing(6)
         self.gridLayout_4.setObjectName("gridLayout_4")
         self.label_10 = QtGui.QLabel(self.mysql_layout)
         self.label_10.setMinimumSize(QtCore.QSize(75, 0))
@@ -227,8 +240,8 @@ class Ui_TaskDialog(object):
         self.connTest.setSizePolicy(sizePolicy)
         self.connTest.setObjectName("connTest")
         self.gridLayout_3.addWidget(self.connTest, 2, 2, 1, 1)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem, 2, 3, 1, 1)
+        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout_3.addItem(spacerItem1, 2, 3, 1, 1)
         self.gridLayout_5 = QtGui.QGridLayout()
         self.gridLayout_5.setObjectName("gridLayout_5")
         self.datatype_sqlite = QtGui.QRadioButton(self.groupBox_2)
@@ -248,11 +261,14 @@ class Ui_TaskDialog(object):
         self.datatype_mysql.setChecked(True)
         self.datatype_mysql.setObjectName("datatype_mysql")
         self.gridLayout_5.addWidget(self.datatype_mysql, 0, 1, 1, 1)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_5.addItem(spacerItem1, 0, 4, 1, 1)
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout_5.addItem(spacerItem2, 0, 4, 1, 1)
         self.datatype_json = QtGui.QRadioButton(self.groupBox_2)
         self.datatype_json.setObjectName("datatype_json")
         self.gridLayout_5.addWidget(self.datatype_json, 0, 2, 1, 1)
+        self.datatype_txt = QtGui.QRadioButton(self.groupBox_2)
+        self.datatype_txt.setObjectName("datatype_txt")
+        self.gridLayout_5.addWidget(self.datatype_txt, 0, 3, 1, 1)
         self.gridLayout_3.addLayout(self.gridLayout_5, 0, 1, 1, 3)
         self.horizontalLayout_2.addLayout(self.gridLayout_3)
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -275,6 +291,7 @@ class Ui_TaskDialog(object):
         self.label_5.setText(QtGui.QApplication.translate("TaskDialog", "单位：秒", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setTitle(QtGui.QApplication.translate("TaskDialog", "存储方案>>", None, QtGui.QApplication.UnicodeUTF8))
         self.taskSave.setText(QtGui.QApplication.translate("TaskDialog", "保存", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_8.setText(QtGui.QApplication.translate("TaskDialog", "存储目录", None, QtGui.QApplication.UnicodeUTF8))
         self.label_17.setText(QtGui.QApplication.translate("TaskDialog", "接口地址", None, QtGui.QApplication.UnicodeUTF8))
         self.label_18.setText(QtGui.QApplication.translate("TaskDialog", "参数", None, QtGui.QApplication.UnicodeUTF8))
         self.label_9.setText(QtGui.QApplication.translate("TaskDialog", "数据库文件", None, QtGui.QApplication.UnicodeUTF8))
@@ -290,4 +307,5 @@ class Ui_TaskDialog(object):
         self.datatype_sqlite.setText(QtGui.QApplication.translate("TaskDialog", "SQLite", None, QtGui.QApplication.UnicodeUTF8))
         self.datatype_mysql.setText(QtGui.QApplication.translate("TaskDialog", "MySQL", None, QtGui.QApplication.UnicodeUTF8))
         self.datatype_json.setText(QtGui.QApplication.translate("TaskDialog", "JSON", None, QtGui.QApplication.UnicodeUTF8))
+        self.datatype_txt.setText(QtGui.QApplication.translate("TaskDialog", "TXT", None, QtGui.QApplication.UnicodeUTF8))
 

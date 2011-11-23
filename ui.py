@@ -9,6 +9,7 @@
 # GNU Free Documentation License 1.3
 
 import simplejson
+import os, urllib2
 from common import Func
 from models import Robot, Task, Session
 
@@ -34,6 +35,7 @@ class TaskUI(QtGui.QDialog):
         self.ui.sqlite_layout.setVisible(False)
         self.ui.mysql_layout.setVisible(False)
         self.ui.json_layout.setVisible(False)
+        self.ui.txt_layout.setVisible(False)
 
         if taskid>0:
             self.setTaskInfo()
@@ -45,9 +47,14 @@ class TaskUI(QtGui.QDialog):
             self.ui.json_layout.setVisible(flag)
             self.ui.execute_sql_layout.setVisible(not flag)
 
+        def toggledTxt(flag):
+            self.ui.txt_layout.setVisible(flag)
+            self.ui.execute_sql_layout.setVisible(not flag)
+
         self.ui.datatype_sqlite.toggled.connect(self.ui.sqlite_layout.setVisible)
         self.ui.datatype_mysql.toggled.connect(self.ui.mysql_layout.setVisible)
         self.ui.datatype_json.toggled.connect(toggledJson)
+        self.ui.datatype_txt.toggled.connect(toggledTxt)
 
         self.connect(self.ui.taskname, QtCore.SIGNAL("textChanged(QString)"), self.checkSubmit)
         self.connect(self.ui.robotid, QtCore.SIGNAL("currentIndexChanged(int)"), self.checkSubmit)
@@ -82,6 +89,11 @@ class TaskUI(QtGui.QDialog):
             self.ui.json_layout.setVisible(True)
             self.ui.json_api_url.setText(dataconn['apiurl'])
             self.ui.json_api_param.setPlainText(dataconn['apiparam'])
+        elif dataconn['datatype']=='txt':
+            self.ui.execute_sql_layout.setVisible(False)
+            self.ui.datatype_txt.setChecked(True)
+            self.ui.txt_layout.setVisible(True)
+            self.ui.txt_path.setText(dataconn['txtpath'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -123,6 +135,10 @@ class TaskUI(QtGui.QDialog):
             apiurl = Func.toStr(self.ui.json_api_url.text())
             apiparam = Func.toStr(self.ui.json_api_param.toPlainText())
             return {'datatype': datatype, 'apiurl': apiurl, 'apiparam': apiparam}
+        elif self.ui.datatype_txt.isChecked():
+            datatype = 'txt'
+            txtpath = Func.toStr(self.ui.txt_path.text())
+            return {'datatype': datatype, 'txtpath': txtpath}
 
     def checkSubmit(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
@@ -135,7 +151,6 @@ class TaskUI(QtGui.QDialog):
     def checkConn(self):
         dataconn = self.getAPIConfig()
         if self.ui.datatype_json.isChecked():
-            import urllib2
             try:
                 opener = urllib2.urlopen(dataconn['apiurl'], data=dataconn['apiparam'])
                 QtGui.QMessageBox.about(self, u'数据接口连接测试', u'恭喜，API地址连接成功！')
@@ -143,6 +158,14 @@ class TaskUI(QtGui.QDialog):
                 QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'HTTPError: %s.' % e.code)
             except urllib2.URLError, e:
                 QtGui.QMessageBox.critical(self, u'数据接口连接测试', 'URLError: %s.' % e.args[0])
+        elif self.ui.datatype_txt.isChecked():
+            txtpath = dataconn['txtpath']
+            try:
+                if not os.path.exists(txtpath):
+                    os.makedirs(txtpath)
+                QtGui.QMessageBox.about(self, u'数据接口连接测试', u'目录创建成功！')
+            except:
+                QtGui.QMessageBox.critical(self, u'数据接口连接测试', u'目录创建失败：%s' % txtpath)
         else:
             from sqlalchemy import create_engine
             from sqlalchemy.exc import OperationalError
@@ -220,6 +243,7 @@ class RobotUI(QtGui.QDialog):
         self.ui.subjecturlrule.setPlainText(robot.subjecturlrule)
         self.ui.subjecturllinkrule.setPlainText(robot.subjecturllinkrule)
         self.ui.subjectrule.setPlainText(robot.subjectrule)
+        self.ui.timerule.setPlainText(robot.timerule)
         self.ui.messagerule.setPlainText(robot.messagerule)
         self.ui.reversemode.setChecked(robot.reversemode==1)
         self.ui.linkmode.setChecked(robot.linkmode==1)
@@ -251,6 +275,7 @@ class RobotUI(QtGui.QDialog):
             robot.subjecturlrule = Func.toStr(self.ui.subjecturlrule.toPlainText())
             robot.subjecturllinkrule = Func.toStr(self.ui.subjecturllinkrule.toPlainText())
             robot.subjectrule = Func.toStr(self.ui.subjectrule.toPlainText())
+            robot.timerule = Func.toStr(self.ui.timerule.toPlainText())
             robot.messagerule = Func.toStr(self.ui.messagerule.toPlainText())
             robot.reversemode = (self.ui.reversemode.isChecked() and [1] or [0])[0]
             robot.linkmode = (self.ui.linkmode.isChecked() and [1] or [0])[0]

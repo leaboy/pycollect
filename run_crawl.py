@@ -8,7 +8,7 @@ from ccrawler.selector import HtmlSelector
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
-import time, urllib, urllib2, urlparse, base64
+import os, time, urllib, urllib2, urlparse, base64
 from common import Func
 
 class DummySpider:
@@ -21,6 +21,7 @@ class DummySpider:
         self.subjecturlrule = robot.subjecturlrule
         self.subjectrule = robot.subjectrule
         self.subjecturllinkrule   = robot.subjecturllinkrule
+        self.timerule = robot.timerule
         self.messagerule = robot.messagerule
         self.rulemode = robot.rulemode
         self.linkmode = robot.linkmode
@@ -45,6 +46,7 @@ class DummySpider:
                 for item in itemlist:
                     res['args'] = args
                     res['title'] = item.select(self.subjectrule).extract()
+                    res['time'] = item.select(self.timerule).extract()
                     res['link'] = item.select(self.subjecturllinkrule).extract()
                     res['message'] = ''
                     yield self.result_check(res)
@@ -55,6 +57,7 @@ class DummySpider:
                         res['args'] = args
                         res['link'] = item.base_url
                         res['title'] = item.select(self.subjectrule).extract()
+                        res['time'] = item.select(self.timerule).extract()
                         res['message'] = item.select(self.messagerule).extract()
                         yield self.result_check(res)
 
@@ -64,6 +67,7 @@ class DummySpider:
                 for item in itemlist:
                     res['args'] = args
                     res['title'] = item.re(self.subjectrule).extract()
+                    res['time'] = item.select(self.timerule).extract()
                     res['link'] = item.re(self.subjecturllinkrule).extract()
                     res['message'] = ''
                     yield self.result_check(res)
@@ -74,6 +78,7 @@ class DummySpider:
                         res['args'] = args
                         res['link'] = item.base_url
                         res['title'] = item.re(self.subjectrule).extract()
+                        res['time'] = item.select(self.timerule).extract()
                         res['message'] = item.re(self.messagerule).extract()
                         yield self.result_check(res)
 
@@ -99,6 +104,16 @@ class DummySpider:
                     response = urllib2.urlopen(request)
                 except:
                     logger.error('Connect API error.')
+        elif dataconn['datatype']=='txt':
+            txtpath = os.path.join(dataconn['txtpath'], str(self.taskid))
+            for i in result:
+                print i
+                '''
+                txtfile = os.path.join(txtpath, base64.b64encode(i.url))
+                fp = open(txtfile, 'w')
+                fp.write(i.message)
+                fp.close()
+                '''
         else:
             for i in result:
                 args = i.pop('args')
@@ -117,7 +132,7 @@ class DummySpider:
         dbconn = None
         dataconn = Func.unserialize(self.dataconn)
         dbcharset = ((hasattr(dataconn, 'dbcharset') and dataconn['dbcharset']) and [dataconn['dbcharset']] or ['utf8'])[0]
-        if not dataconn['datatype']=='json':
+        if dataconn['datatype']!='json' and dataconn['datatype']!='txt':
             from sqlalchemy import create_engine
             from sqlalchemy.exc import OperationalError
             try:
