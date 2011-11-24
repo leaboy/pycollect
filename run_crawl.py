@@ -8,7 +8,7 @@ from ccrawler.selector import HtmlSelector
 import logging
 logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
 
-import os, time, urllib, urllib2, urlparse, base64
+import os, time, urllib, urllib2, urlparse, base64, hashlib
 from common import Func
 
 class DummySpider:
@@ -104,16 +104,35 @@ class DummySpider:
                     response = urllib2.urlopen(request)
                 except:
                     logger.error('Connect API error.')
+
         elif dataconn['datatype']=='txt':
             txtpath = os.path.join(dataconn['txtpath'], str(self.taskid))
+            if not os.path.exists(txtpath):
+                os.makedirs(txtpath)
             for i in result:
-                print i
-                '''
-                txtfile = os.path.join(txtpath, base64.b64encode(i.url))
+                args = i.pop('args')
+                param_dict = dict([
+                    (param_item[0].strip(), param_item[1].strip())
+                    for param_item
+                    in [
+                        part.split('=', 1)
+                        for part
+                        in dataconn['param'].splitlines()]
+                    if len(param_item) == 2])
+
+                param_dict = self.dict_value(dict(i, **args), param_dict, dbcharset, True)
+
+                txtfile = os.path.join(txtpath, hashlib.md5(i['link']).hexdigest())
                 fp = open(txtfile, 'w')
-                fp.write(i.message)
+                fp.write(Func.serialize(param_dict))
                 fp.close()
                 '''
+                try:
+
+                except:
+                    logger.error('Connect API error.')
+                '''
+
         else:
             for i in result:
                 args = i.pop('args')
@@ -147,18 +166,20 @@ class DummySpider:
         res['title'] = res['title'] and res['title'][0] or ''
         if isinstance(res['link'], list) and len(res['link'])>0:
             res['link'] = urlparse.urljoin(res['url'], res['link'][0])
+        res['time'] = res['time'] and res['time'][0] or ''
         res['message'] = res['message'] and res['message'][0] or ''
         return res
 
-    def dict_value(self, adict, paramdict, dbcharset):
+    def dict_value(self, adict, paramdict, dbcharset, encoding=False):
         adict['link'] = adict['link'].encode(dbcharset, 'backslashreplace')
         adict['title'] = adict['title'].encode(dbcharset, 'backslashreplace')
+        adict['time'] = adict['time'].encode(dbcharset, 'backslashreplace')
         adict['message'] = adict['message'].encode(dbcharset, 'backslashreplace')
         adict = dict([('[%s]' % k, adict[k]) for k in adict])
         for i in paramdict:
             uitem = paramdict[i]
             if uitem in adict:
-                paramdict[i] = adict[uitem]
+                paramdict[i] = encoding and base64.b64encode(adict[uitem]) or adict[uitem]
         return paramdict
 
 

@@ -94,6 +94,7 @@ class TaskUI(QtGui.QDialog):
             self.ui.datatype_txt.setChecked(True)
             self.ui.txt_layout.setVisible(True)
             self.ui.txt_path.setText(dataconn['txtpath'])
+            self.ui.txt_param.setPlainText(dataconn['param'])
 
         self.ui.taskname.setText(taskname)
         robotIndex = self.ui.robotid.findData(QtCore.QVariant(robotid))
@@ -138,7 +139,8 @@ class TaskUI(QtGui.QDialog):
         elif self.ui.datatype_txt.isChecked():
             datatype = 'txt'
             txtpath = Func.toStr(self.ui.txt_path.text())
-            return {'datatype': datatype, 'txtpath': txtpath}
+            param = Func.toStr(self.ui.txt_param.toPlainText())
+            return {'datatype': datatype, 'txtpath': txtpath, 'param': param}
 
     def checkSubmit(self):
         robotid = Func._variantConv(self.ui.robotid.itemData(self.ui.robotid.currentIndex()), 'int')
