@@ -7,15 +7,19 @@
 #
 # GNU Free Documentation License 1.3
 
-import hashlib
+import os
 
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData
 from sqlalchemy.orm import mapper, scoped_session, sessionmaker
 
-def init_record(tname):
-    tabal_name = hashlib.md5(str(tname)).hexdigest().upper()
-    engine = create_engine('sqlite:///records.db')
+def init_record(dbname):
+    db_path = 'records'
+    tabal_name = 'records'
+    if not os.path.exists(db_path):
+        os.makedirs(db_path)
+    db_file = os.path.join(db_path, str(dbname))
+    engine = create_engine('sqlite:///%s' % db_file)
     metadata = MetaData()
 
     record_table = Table(tabal_name, metadata,

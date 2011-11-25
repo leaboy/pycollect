@@ -15,8 +15,8 @@ class HtmlSelectorList(list):
     def extract(self):
         return [x.extract() for x in self]
 
-    def Link(self):
-        return [x.Link() for x in self]
+    def Link(self, recover=True):
+        return [x.Link(recover) for x in self]
 
 
     def re(self, regex):

@@ -6,7 +6,7 @@
 #
 # GNU Free Documentation License 1.3
 
-import sys, re, warnings
+import os, re, warnings
 from functools import wraps
 from python import flatten
 from markup import remove_entities
@@ -54,8 +54,13 @@ def logger(**kwargs):
     name = options['name']
     logger = logging.getLogger(name)
 
+    filepath = 'log'
+    if not os.path.isdir(filepath):
+        os.makedirs(filepath)
+    file_name = os.path.join(filepath, options['filename'])
+
     Formatter = logging.Formatter(options['format'])
-    logHandler = logging.FileHandler(options['filename'], options['filemode'])
+    logHandler = logging.FileHandler(file_name, options['filemode'])
     logHandler.setFormatter(Formatter)
     logger.addHandler(logHandler)
 

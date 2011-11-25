@@ -51,7 +51,7 @@ class DummySpider:
                     res['message'] = ''
                     yield self.result_check(res)
             else:
-                pageitem = itemlist.select(self.subjecturllinkrule).Link()
+                pageitem = itemlist.select(self.subjecturllinkrule).Link(self.recover)
                 for item in pageitem:
                     if item:
                         res['args'] = args
@@ -72,7 +72,7 @@ class DummySpider:
                     res['message'] = ''
                     yield self.result_check(res)
             else:
-                pageitem = itemlist.re(self.subjecturllinkrule).Link()
+                pageitem = itemlist.re(self.subjecturllinkrule).Link(self.recover)
                 for item in pageitem:
                     if item:
                         res['args'] = args
@@ -109,29 +109,29 @@ class DummySpider:
             txtpath = os.path.join(dataconn['txtpath'], str(self.taskid))
             if not os.path.exists(txtpath):
                 os.makedirs(txtpath)
-            for i in result:
-                args = i.pop('args')
-                param_dict = dict([
-                    (param_item[0].strip(), param_item[1].strip())
-                    for param_item
-                    in [
-                        part.split('=', 1)
-                        for part
-                        in dataconn['param'].splitlines()]
-                    if len(param_item) == 2])
+            else:
+                pass
+            try:
+                for i in result:
+                    args = i.pop('args')
+                    param_dict = dict([
+                        (param_item[0].strip(), param_item[1].strip())
+                        for param_item
+                        in [
+                            part.split('=', 1)
+                            for part
+                            in dataconn['param'].splitlines()]
+                        if len(param_item) == 2])
 
-                param_dict = self.dict_value(dict(i, **args), param_dict, dbcharset, True)
+                    param_dict = self.dict_value(dict(i, **args), param_dict, dbcharset, True)
+                    param_dict['charset'] = dbcharset
 
-                txtfile = os.path.join(txtpath, hashlib.md5(i['link']).hexdigest())
-                fp = open(txtfile, 'w')
-                fp.write(Func.serialize(param_dict))
-                fp.close()
-                '''
-                try:
-
-                except:
-                    logger.error('Connect API error.')
-                '''
+                    txtfile = os.path.join(txtpath, hashlib.md5(i['link']).hexdigest())
+                    fp = open(txtfile, 'w')
+                    fp.write(Func.serialize(param_dict))
+                    fp.close()
+            except:
+                logger.error('Connect API error.')
 
         else:
             for i in result:

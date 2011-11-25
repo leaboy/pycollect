@@ -6,6 +6,7 @@
 #
 # GNU Free Documentation License 1.3
 
+import hashlib
 import urlparse
 import eventlet
 from lxml import etree
@@ -13,6 +14,10 @@ from http import Request
 from python import unicode_to_str
 from list import HtmlSelectorList
 from common import extract_regex, body_as_utf8, logger
+
+from sqlalchemy.orm import mapper
+from records import init_record
+
 
 import logging
 logger = logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
@@ -78,11 +83,24 @@ class HtmlSelector:
             result = [self.__class__(text=result, root=self.utf8body, base_url=self.base_url)]
         return HtmlSelectorList(result)
 
-    def Link(self):
+    def Link(self, recover=True):
         result = self.extract()
         if result:
             try:
                 url = urlparse.urljoin(self.base_url, result)
+                url_hash = hashlib.md5(url).hexdigest()
+
+                records, session = init_record(hashlib.md5(self.base_url).hexdigest())
+                query_record = session.query(records.hash).filter(records.hash==url_hash).first()
+
+                if query_record!=None and recover==False:
+                    return
+
+                if query_record==None:
+                    query = records(url_hash)
+                    session.add(query)
+                    session.commit()
+
                 response = Request(unicode_to_str(url), 8)
                 logger.info('Fetched: %s (%s)' % (url, response.status))
                 return self.__class__(response)

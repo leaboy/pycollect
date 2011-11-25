@@ -23,7 +23,8 @@ class DummySpider:
     #start_urls = ['http://www.sse.com.cn/sseportal/webapp/datapresent/SSEQueryCompanyStatement?PRODUCTID=600010&COMPANY_CODE=600010&REPORTTYPE2=&REPORTTYPE=ALL&PAGE=1']
     #start_urls = ['http://money.finance.sina.com.cn/corp/go.php/vCB_AllNewsStock/symbol/sh600299.phtml']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
-    start_urls = ['http://money.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=sz000001&Page=1']
+    #start_urls = ['http://money.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=sz000001&Page=1']
+    start_urls = ['http://www.tuaaa.com/eread/']
     workers = 100
     timeout = 8
     #recover = False
@@ -31,7 +32,17 @@ class DummySpider:
     def parse(self, response):
         hxs = HtmlSelector(response)
 
-        #'''
+        itemlist = hxs.select('//div[@class="nr_left"]/ul/li[@class="nr_left1"]/a')
+        print len(itemlist)
+        '''
+        linkitem = itemlist.select('@href').Link()
+        for item in linkitem:
+            title = item.select('//div[@class="nr_left"]/div[@class="nr_left_top"]/div[@class="nr_left_top1"]/text()').extract()
+            content = item.select('//div[@class="nr_left"]/div[@class="nr_left_center"]').extract()
+            print title
+        '''
+
+        '''
         #//td[@class="content"]/table[@bordercolor="#000000"]/tr[@bgcolor="#F4F4F4"]/td[1]
         #//td[@class="datelist"]/ul
         itemlist = hxs.select('//div[@class="datelist"]/ul/a')
@@ -40,11 +51,12 @@ class DummySpider:
             #print item.select('//div[@class="blkContainerSblk"]/h1[@id="artibodyTitle"]/text()').extract()
             title = item.select('//div[@class="blkContainerSblk"]/h1[@id="artibodyTitle"]/text()').extract()
             content = item.select('//div[@class="blkContainerSblkCon"]').extract()
+
             if len(content)>0:
                 fp = open(base64.b64encode(item.base_url), 'w')
                 fp.write(content[0].encode('gb2312', 'backslashreplace'))
                 fp.close()
-        #'''
+        '''
 
         '''
         Usage re

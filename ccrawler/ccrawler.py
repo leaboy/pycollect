@@ -74,17 +74,18 @@ class CCrawler:
         if response.status is not '200':
             return
         res_hash = hashlib.md5(response.body).hexdigest().upper()
-        db_record = self.session.query(self.records.hash).filter(self.records.hash==res_hash).first()
-        if db_record and not self.recover:
+        query_record = self.session.query(self.records.hash).filter(self.records.hash==res_hash).first()
+        if query_record!=None and self.recover==False:
             return
-        else:
-            item = self._parse(response)
-            if item is not None:
-                self._pipeliner(item)
-            if not db_record:
-                query = self.records(res_hash)
-                self.session.add(query)
-                self.session.commit()
+
+        if query_record==None:
+            query = self.records(res_hash)
+            self.session.add(query)
+            self.session.commit()
+
+        item = self._parse(response)
+        if item is not None:
+            self._pipeliner(item)
 
     def _spider(self, spider):
         try:
