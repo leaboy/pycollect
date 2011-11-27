@@ -32,10 +32,10 @@ class DummySpider:
     def parse(self, response):
         hxs = HtmlSelector(response)
 
-        itemlist = hxs.select('//div[@class="nr_left"]/ul/li[@class="nr_left1"]/a')
-        print len(itemlist)
+        itemlist = hxs.select('//div[@class="nr_left"]/ul/li[@class="nr_left2"]')
+        linkitem = itemlist.select('a/@href').Link()
+        print len(linkitem)
         '''
-        linkitem = itemlist.select('@href').Link()
         for item in linkitem:
             title = item.select('//div[@class="nr_left"]/div[@class="nr_left_top"]/div[@class="nr_left_top1"]/text()').extract()
             content = item.select('//div[@class="nr_left"]/div[@class="nr_left_center"]').extract()
