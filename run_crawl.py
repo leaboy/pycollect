@@ -106,11 +106,12 @@ class DummySpider:
                     logger.error('Connect API error.')
 
         elif dataconn['datatype']=='txt':
-            txtpath = os.path.join(dataconn['txtpath'], str(self.taskid))
-            if not os.path.exists(txtpath):
-                os.makedirs(txtpath)
-            else:
-                pass
+            basepath = dataconn['txtpath']
+            listname = None
+            pagepath = None
+            if not os.path.exists(basepath):
+                os.makedirs(basepath)
+
             try:
                 for i in result:
                     args = i.pop('args')
@@ -126,7 +127,31 @@ class DummySpider:
                     param_dict = self.dict_value(dict(i, **args), param_dict, dbcharset, True)
                     param_dict['charset'] = dbcharset
 
-                    txtfile = os.path.join(txtpath, hashlib.md5(i['link']).hexdigest())
+                    # list
+                    if listname is None:
+
+                        listname = hashlib.md5(i['url']).hexdigest()
+                        pagepath = os.path.join(basepath, listname)
+
+                        listidx = os.path.join(basepath, 'index')
+                        fp = open(listidx, 'a')
+                        fp.write("%s\n" % listname)
+                        fp.close()
+
+                        if not os.path.exists(pagepath):
+                            os.makedirs(pagepath)
+
+                    # page
+                    pageidx = os.path.join(pagepath, 'index')
+                    txtname = hashlib.md5(i['link']).hexdigest()
+
+                    fp = open(pageidx, 'a')
+                    fp.write("%s\n" % txtname)
+                    fp.close()
+
+                    # file
+                    txtfile = os.path.join(pagepath, txtname)
+
                     fp = open(txtfile, 'w')
                     fp.write(Func.serialize(param_dict))
                     fp.close()
