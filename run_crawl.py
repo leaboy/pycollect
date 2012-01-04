@@ -6,7 +6,7 @@ from ccrawler.ccrawler import CCrawler
 from ccrawler.selector import HtmlSelector
 
 import logging
-logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
+logger = common.logger(name=__name__, level=logging.DEBUG)
 
 import os, time, urllib, urllib2, urlparse, base64, hashlib
 from common import Func

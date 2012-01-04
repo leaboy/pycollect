@@ -8,7 +8,7 @@ from ccrawler import CCrawler, Request
 from selector import HtmlSelector
 
 import logging
-logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
+logger = common.logger(name=__name__, level=logging.DEBUG)
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError

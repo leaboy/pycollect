@@ -21,7 +21,7 @@ from records import init_record
 
 
 import logging, traceback
-logger = common.logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
+logger = common.logger(name=__name__, level=logging.DEBUG)
 
 class CCrawler:
     def __init__(self, spider):

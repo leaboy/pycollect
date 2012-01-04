@@ -20,7 +20,7 @@ from records import init_record
 
 
 import logging
-logger = logger(name=__name__, filename='ccrawler.log', level=logging.DEBUG)
+logger = logger(name=__name__, level=logging.DEBUG)
 
 class HtmlSelector:
     __slots__ = ['_text', '_root', '_xpathev', 'expr', 'namespaces', 'base_url']

@@ -6,7 +6,7 @@
 #
 # GNU Free Documentation License 1.3
 
-import os, re, warnings
+import os, re, time, warnings
 from functools import wraps
 from python import flatten
 from markup import remove_entities
@@ -46,7 +46,7 @@ def logger(**kwargs):
         'name': 'root',
         'level': logging.NOTSET, # DEBUG, INFO, WARNING, ERROR, CRITICAL
         'format': '%(asctime)s [%(name)s] - %(levelname)s %(message)s',
-        'filename': 'root.log',
+        'filename': '',
         'filemode': 'a', }
 
     options.update(kwargs)
@@ -54,10 +54,12 @@ def logger(**kwargs):
     name = options['name']
     logger = logging.getLogger(name)
 
-    filepath = 'log'
+    lyear, lmonth = time.localtime()[:2]
+    filepath = os.path.join('log', '%s-%s' % (str(lyear), str(lmonth)))
     if not os.path.isdir(filepath):
         os.makedirs(filepath)
-    file_name = os.path.join(filepath, options['filename'])
+    file_name = options['filename'] and options['filename'] or str(int(time.time()))
+    file_name = os.path.join(filepath, file_name)
 
     Formatter = logging.Formatter(options['format'])
     logHandler = logging.FileHandler(file_name, options['filemode'])
