@@ -28,9 +28,11 @@ class CCrawler:
         self.spider = self._spider(spider)
         self.taskid = getattr(self.spider, 'taskid', 0)
         self.recover = getattr(self.spider, 'recover', True)
+        self.reverse = getattr(self.spider, 'reverse', False)
         self.workers = getattr(self.spider, 'workers', 100)
         self.timeout = getattr(self.spider, 'timeout', 60)
         self.start_urls = getattr(self.spider, 'start_urls', [])
+        self.start_urls = self.reverse and self.start_urls.reverse() or self.start_urls
 
         self.creq = queue.Queue()
         self.cres = queue.Queue()
@@ -55,7 +57,7 @@ class CCrawler:
 
     def fetcher(self):
         url = self.creq.get()
-        response = Request(str(url), self.timeout)
+        response = Request(str(url), self.reverse)
         self.cres.put(response)
         self.pool.spawn_n(self.parse_coroutine)
         logger.info('Fetched: %s (%s)' % (url, response.status))

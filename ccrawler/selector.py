@@ -27,14 +27,17 @@ class HtmlSelector:
     _parser = etree.HTMLParser
     _tostring_method = 'html'
 
-    def __init__(self, response=None, text=None, root=None, expr=None, namespaces=None, base_url=None):
+    def __init__(self, response=None, text=None, root=None, expr=None, namespaces=None, base_url=None, reversemode=False):
         if response:
             self.response = response
             self.utf8body = body_as_utf8(self.response)
+            self.reversemode = response.reversemode
         elif text:
             self.utf8body = unicode_to_str(text)
+            self.reversemode = reversemode
         else:
             self.utf8body = ''
+            self.reversemode = reversemode
 
         if not base_url and response:
             self.base_url = response.url
@@ -68,19 +71,21 @@ class HtmlSelector:
             raise ValueError("Invalid XPath: %s" % xpath)
 
         if hasattr(result, '__iter__'):
-            result = [self.__class__(root=x, expr=xpath, namespaces=self.namespaces, base_url=self.base_url) \
+            result = [self.__class__(root=x, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode) \
                 for x in result]
         else:
-            result = [self.__class__(root=result, expr=xpath, namespaces=self.namespaces, base_url=self.base_url)]
+            result = [self.__class__(root=result, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode)]
+        result = self.reversemode and result.reverse() or result
         return HtmlSelectorList(result)
 
     def re(self, regex):
         result = extract_regex(regex, self.utf8body)
         if hasattr(result, '__iter__'):
-            result = [self.__class__(text=x, root=self.utf8body, base_url=self.base_url) \
+            result = [self.__class__(text=x, root=self.utf8body, base_url=self.base_url, reversemode=self.reversemode) \
                 for x in result]
         else:
-            result = [self.__class__(text=result, root=self.utf8body, base_url=self.base_url)]
+            result = [self.__class__(text=result, root=self.utf8body, base_url=self.base_url, reversemode=self.reversemode)]
+        result = self.reversemode and result.reverse() or result
         return HtmlSelectorList(result)
 
     def Link(self, recover=True):
@@ -101,7 +106,7 @@ class HtmlSelector:
                     session.add(query)
                     session.commit()
 
-                response = Request(unicode_to_str(url), 8)
+                response = Request(unicode_to_str(url), self.reversemode)
                 logger.info('Fetched: %s (%s)' % (url, response.status))
                 return self.__class__(response)
             except:

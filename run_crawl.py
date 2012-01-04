@@ -23,6 +23,7 @@ class DummySpider:
         self.subjecturllinkrule   = robot.subjecturllinkrule
         self.timerule = robot.timerule
         self.messagerule = robot.messagerule
+        self.reversemode = robot.reversemode
         self.rulemode = robot.rulemode
         self.linkmode = robot.linkmode
         self.downloadmode = robot.downloadmode
@@ -32,6 +33,7 @@ class DummySpider:
         self.timeout = robot.timeout
         self.parent = parent
         self.recover = False
+        self.reverse = self.reversemode
 
     def parse(self, response):
         res = {}
@@ -40,6 +42,7 @@ class DummySpider:
         res['runtime'] = time.mktime(time.localtime())
 
         hxs = HtmlSelector(response)
+        hxs = self.reversemode and hxs.reverse() or hxs
         if self.rulemode=='xpath':
             itemlist = hxs.select(self.subjecturlrule)
             if self.linkmode:

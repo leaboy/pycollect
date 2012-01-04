@@ -28,6 +28,7 @@ class DummySpider:
     workers = 100
     timeout = 8
     #recover = False
+    #reverse = True
 
     def parse(self, response):
         hxs = HtmlSelector(response)
