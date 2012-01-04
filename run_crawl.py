@@ -42,7 +42,6 @@ class DummySpider:
         res['runtime'] = time.mktime(time.localtime())
 
         hxs = HtmlSelector(response)
-        hxs = self.reversemode and hxs.reverse() or hxs
         if self.rulemode=='xpath':
             itemlist = hxs.select(self.subjecturlrule)
             if self.linkmode:
