@@ -54,11 +54,10 @@ def logger(**kwargs):
     name = options['name']
     logger = logging.getLogger(name)
 
-    lyear, lmonth = time.localtime()[:2]
-    filepath = os.path.join('log', '%s-%s' % (str(lyear), str(lmonth)))
+    filepath = os.path.join('log', time.strftime('%Y-%m'))
     if not os.path.isdir(filepath):
         os.makedirs(filepath)
-    file_name = options['filename'] and options['filename'] or str(int(time.time()))
+    file_name = options['filename'] and options['filename'] or time.strftime('%Y-%m-%d')
     file_name = os.path.join(filepath, file_name)
 
     Formatter = logging.Formatter(options['format'])
