@@ -13,6 +13,9 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(700, 365)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("icons/app.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        MainWindow.setWindowIcon(icon)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -75,7 +78,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Crawl - 股市动态分析杂志社个股数据采集器", None, QtGui.QApplication.UnicodeUTF8))
         self.mainlist.setSortingEnabled(True)
         self.main_m_add.setTitle(QtGui.QApplication.translate("MainWindow", "添加", None, QtGui.QApplication.UnicodeUTF8))
         self.main_m_log.setTitle(QtGui.QApplication.translate("MainWindow", "日志", None, QtGui.QApplication.UnicodeUTF8))
