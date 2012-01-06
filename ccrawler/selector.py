@@ -68,7 +68,8 @@ class HtmlSelector:
         try:
             result = self.xpathev(xpath)
         except etree.XPathError:
-            raise ValueError("Invalid XPath: %s" % xpath)
+            result = None
+            logger.error("Invalid XPath: %s" % xpath)
 
         if hasattr(result, '__iter__'):
             result = [self.__class__(root=x, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode) \
