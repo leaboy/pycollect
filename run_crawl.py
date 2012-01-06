@@ -29,6 +29,7 @@ class DummySpider:
         self.downloadmode = robot.downloadmode
 
         self.start_urls = Func.getStartUrls(robot.listurl, robot.listpagestart, robot.listpageend, robot.wildcardlen, robot.stockdata)
+        self.name = self.taskid
         self.workers = robot.threads
         self.timeout = robot.timeout
         self.parent = parent
