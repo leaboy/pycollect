@@ -9,7 +9,7 @@
 import os, re, time, warnings
 from functools import wraps
 from python import flatten
-from markup import remove_entities
+from markup import remove_entities, replace_escape_chars
 
 import codecs
 from settings import ENCODING_ALIASES_BASE, ENCODING_ALIASES
@@ -82,6 +82,7 @@ def body_as_unicode(response):
     return response.body.decode(response.encoding, 'scrapy_replace')
 
 def body_as_utf8(response):
+    response.body = replace_escape_chars(response.body)
     if response.encoding in utf8_encodings:
         return response.body
     else:

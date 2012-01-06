@@ -77,9 +77,9 @@ def replace_tags(text, token='', encoding=None):
 def remove_comments(text, encoding=None):
     """ Remove HTML Comments. """
     return re.sub('<!--.*?-->', u'', str_to_unicode(text, encoding), re.DOTALL)
-      
+
 def remove_tags(text, which_ones=(), keep=(), encoding=None):
-    """ Remove HTML Tags only. 
+    """ Remove HTML Tags only.
 
         which_ones and keep are both tuples, there are four cases:
 
@@ -109,7 +109,7 @@ def remove_tags(text, which_ones=(), keep=(), encoding=None):
 
 def remove_tags_with_content(text, which_ones=(), encoding=None):
     """ Remove tags and its content.
-        
+
         which_ones -- is a tuple of which tags with its content we want to remove.
                       if is empty do nothing.
     """
@@ -119,10 +119,9 @@ def remove_tags_with_content(text, which_ones=(), encoding=None):
         retags = re.compile(tags, re.DOTALL | re.IGNORECASE)
         text = retags.sub(u'', text)
     return text
-    
 
-def replace_escape_chars(text, which_ones=('\n', '\t', '\r'), replace_by=u'', \
-        encoding=None):
+
+def replace_escape_chars(text, which_ones=('\n', '\t', '\r'), replace_by=''):
     """ Remove escape chars. Default : \\n, \\t, \\r
 
         which_ones -- is a tuple of which escape chars we want to remove.
@@ -132,8 +131,8 @@ def replace_escape_chars(text, which_ones=('\n', '\t', '\r'), replace_by=u'', \
                       It defaults to '', so the escape chars are removed.
     """
     for ec in which_ones:
-        text = text.replace(ec, str_to_unicode(replace_by, encoding))
-    return str_to_unicode(text, encoding)
+        text = text.replace(ec, replace_by)
+    return text
 
 def unquote_markup(text, keep=(), remove_illegal=True, encoding=None):
     """
