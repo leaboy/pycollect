@@ -19,12 +19,13 @@ class DummySpider:
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sh']
     #start_urls = ['http://ustock.finance.ifeng.com/stock_list.php?type=sz', 'http://ustock.finance.ifeng.com/stock_list.php?type=gem']
     #start_urls = ['http://www.blueidea.com/photo/gallery', 'http://www.blueidea.com/photo/gallery/index_2.asp', 'http://www.blueidea.com/photo/gallery/index_3.asp', 'http://www.blueidea.com/photo/skill/index.asp', 'http://www.blueidea.com/photo/skill/index_2.asp', 'http://www.blueidea.com/photo/skill/index_3.asp', 'http://www.blueidea.com/photo/skill/index_4.asp', 'http://www.blueidea.com/photo/skill/index_5.asp', 'http://www.blueidea.com/photo/skill/index_6.asp', 'http://www.blueidea.com/photo/camera/index.asp', 'http://www.blueidea.com/photo/camera/index_2.asp']
-    start_urls = ['http://disclosure.szse.cn/m/drgg000001.htm', 'http://disclosure.szse.cn/m/drgg000002.htm']
+    #start_urls = ['http://disclosure.szse.cn/m/drgg000001.htm', 'http://disclosure.szse.cn/m/drgg000002.htm']
     #start_urls = ['http://www.sse.com.cn/sseportal/webapp/datapresent/SSEQueryCompanyStatement?PRODUCTID=600010&COMPANY_CODE=600010&REPORTTYPE2=&REPORTTYPE=ALL&PAGE=1']
     #start_urls = ['http://money.finance.sina.com.cn/corp/go.php/vCB_AllNewsStock/symbol/sh600299.phtml']
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
     #start_urls = ['http://money.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=sz000001&Page=1']
     #start_urls = ['http://www.tuaaa.com/eread/']
+    start_urls = ['http://ggzx.stock.hexun.com/more.jsp?t=0&k=002102']
     name = 'test'
     workers = 100
     timeout = 8
@@ -34,22 +35,23 @@ class DummySpider:
     def parse(self, response):
         hxs = HtmlSelector(response)
 
-        '''
-        itemlist = hxs.select('//div[@class="nr_left"]/ul/li[@class="nr_left2"]')
+        itemlist = hxs.select('//div[@class="temp01"]/ul[@id="c1"]/li')
         linkitem = itemlist.select('a/@href').Link()
         print len(linkitem)
 
         for item in linkitem:
-            title = item.select('//div[@class="nr_left"]/div[@class="nr_left_top"]/div[@class="nr_left_top1"]/text()').extract()
-            content = item.select('//div[@class="nr_left"]/div[@class="nr_left_center"]').extract()
+            title = item.select('//div[@id="artibodyTitle"]/h1/text() | //h1[@class="fontTitle"]/text()').extract()
+            pubtime = item.select('//div[@id="artibodyTitle"]/div/div/span[@class="gray"][1]/text() | //span[@id="artibodyDesc"]/span[@class="gray"][1]/text() | //div[@class="detailnav"]/div/span[@class="gray"]/text() | //div[@id="artInfo"]/span/text()').extract()
+            content = item.select('//div[@id="artibody"]').extract()
             print title
-        '''
 
+        '''
         itemlist = hxs.select('//td[@class="td2"]')
         for item in itemlist:
             title = item.select('a/text()').extract()
             link = item.select('a/@href').extract()
             print link
+        '''
 
         '''
         #//td[@class="content"]/table[@bordercolor="#000000"]/tr[@bgcolor="#F4F4F4"]/td[1]

@@ -110,11 +110,11 @@ class HtmlSelector:
                     session.add(query)
                     session.commit()
 
-                response = Request(unicode_to_str(url), self.reversemode)
+                response = Request(self.spidername, unicode_to_str(url), self.reversemode)
                 logger.info('Fetched: %s (%s)' % (url, response.status))
                 return self.__class__(response)
             except:
-                pass
+                logger.error("Failed url: %s" % result)
 
     def extract(self):
         if isinstance(self._root, etree._ElementUnicodeResult) or isinstance(self._root, etree._ElementStringResult) or isinstance(self._root, etree._Element):
