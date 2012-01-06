@@ -14,7 +14,7 @@ from headers import Headers
 from eventlet.green import urllib2
 
 
-def Request(url, req_reverse=False, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS):
+def Request(spidername, url, req_reverse=False, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS):
     body, status, response, params = 'None', '200', None, {}
     request = urllib2.Request(url, req_data, req_headers)
     try:
@@ -38,7 +38,7 @@ def Request(url, req_reverse=False, req_data=None, req_headers=settings.DEFAULT_
     except:
         status = 'URLError: Could not resolve.'
     finally:
-        return Response(url, status, req_headers, body, request, req_reverse)(params)
+        return Response(spidername, url, status, req_headers, body, request, req_reverse)(params)
 
 
 class Response:
@@ -55,8 +55,9 @@ class Response:
     _DEFAULT_ENCODING = settings.DEFAULT_RESPONSE_ENCODING
     _ENCODING_RE = re.compile(r'charset=([\w-]+)', re.I)
 
-    def __init__(self, url, status=200, headers=None, body='', request=None, reversemode=False):
+    def __init__(self, spidername, url, status=200, headers=None, body='', request=None, reversemode=False):
         self.headers = Headers(headers or {})
+        self.name = spidername
         self.status = status
         self._set_body(body)
         self._set_url(url)

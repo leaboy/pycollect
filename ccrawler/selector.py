@@ -27,17 +27,20 @@ class HtmlSelector:
     _parser = etree.HTMLParser
     _tostring_method = 'html'
 
-    def __init__(self, response=None, text=None, root=None, expr=None, namespaces=None, base_url=None, reversemode=False):
+    def __init__(self, response=None, text=None, root=None, expr=None, namespaces=None, base_url=None, reversemode=False, spidername=None):
         if response:
             self.response = response
             self.utf8body = body_as_utf8(self.response)
             self.reversemode = response.reversemode
+            self.spidername = response.name
         elif text:
             self.utf8body = unicode_to_str(text)
             self.reversemode = reversemode
+            self.spidername = spidername
         else:
             self.utf8body = ''
             self.reversemode = reversemode
+            self.spidername = spidername
 
         if not base_url and response:
             self.base_url = response.url
@@ -72,20 +75,20 @@ class HtmlSelector:
             logger.error("Invalid XPath: %s" % xpath)
 
         if hasattr(result, '__iter__'):
-            result = [self.__class__(root=x, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode) \
+            result = [self.__class__(root=x, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode, spidername=self.spidername) \
                 for x in result]
         else:
-            result = [self.__class__(root=result, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode)]
+            result = [self.__class__(root=result, expr=xpath, namespaces=self.namespaces, base_url=self.base_url, reversemode=self.reversemode, spidername=self.spidername)]
         result = self.reversemode and result.reverse() or result
         return HtmlSelectorList(result)
 
     def re(self, regex):
         result = extract_regex(regex, self.utf8body)
         if hasattr(result, '__iter__'):
-            result = [self.__class__(text=x, root=self.utf8body, base_url=self.base_url, reversemode=self.reversemode) \
+            result = [self.__class__(text=x, root=self.utf8body, base_url=self.base_url, reversemode=self.reversemode, spidername=self.spidername) \
                 for x in result]
         else:
-            result = [self.__class__(text=result, root=self.utf8body, base_url=self.base_url, reversemode=self.reversemode)]
+            result = [self.__class__(text=result, root=self.utf8body, base_url=self.base_url, reversemode=self.reversemode, spidername=self.spidername)]
         result = self.reversemode and result.reverse() or result
         return HtmlSelectorList(result)
 
@@ -96,7 +99,7 @@ class HtmlSelector:
                 url = urlparse.urljoin(self.base_url, result)
                 url_hash = hashlib.md5(url).hexdigest()
 
-                records, session = init_record(hashlib.md5(self.base_url).hexdigest())
+                records, session = init_record(self.spidername, hashlib.md5(self.base_url).hexdigest())
                 query_record = session.query(records.hash).filter(records.hash==url_hash).first()
 
                 if query_record!=None and recover==False:

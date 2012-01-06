@@ -46,7 +46,7 @@ def logger(**kwargs):
         'name': 'root',
         'level': logging.NOTSET, # DEBUG, INFO, WARNING, ERROR, CRITICAL
         'format': '%(asctime)s [%(name)s] - %(levelname)s %(message)s',
-        'filename': '',
+        'filename': 'root.log',
         'filemode': 'a', }
 
     options.update(kwargs)
@@ -54,11 +54,10 @@ def logger(**kwargs):
     name = options['name']
     logger = logging.getLogger(name)
 
-    filepath = os.path.join('log', time.strftime('%Y-%m'))
+    filepath = os.path.join('log', time.strftime('%Y'), time.strftime('%Y-%m-%d'))
     if not os.path.isdir(filepath):
         os.makedirs(filepath)
-    file_name = options['filename'] and options['filename'] or time.strftime('%Y-%m-%d')
-    file_name = os.path.join(filepath, file_name)
+    file_name = os.path.join(filepath, options['filename'])
 
     Formatter = logging.Formatter(options['format'])
     logHandler = logging.FileHandler(file_name, options['filemode'])

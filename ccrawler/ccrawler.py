@@ -10,7 +10,7 @@
 
 from __future__ import with_statement
 
-import hashlib
+import os, hashlib
 import common, settings
 import eventlet
 from eventlet import queue
@@ -26,7 +26,7 @@ logger = common.logger(name=__name__, level=logging.DEBUG)
 class CCrawler:
     def __init__(self, spider):
         self.spider = self._spider(spider)
-        self.taskid = getattr(self.spider, 'taskid', 0)
+        self.name = getattr(self.spider, 'name', 0)
         self.recover = getattr(self.spider, 'recover', True)
         self.reverse = getattr(self.spider, 'reverse', False)
         self.workers = getattr(self.spider, 'workers', 100)
@@ -40,7 +40,7 @@ class CCrawler:
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
 
-        self.records, self.session = init_record(self.taskid)
+        self.records, self.session = init_record(self.name, 'data')
 
     def dispatcher(self):
         try:
@@ -57,7 +57,7 @@ class CCrawler:
 
     def fetcher(self):
         url = self.creq.get()
-        response = Request(str(url), self.reverse)
+        response = Request(self.name, str(url), self.reverse)
         self.cres.put(response)
         self.pool.spawn_n(self.parse_coroutine)
         logger.info('Fetched: %s (%s)' % (url, response.status))

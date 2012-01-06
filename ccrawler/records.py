@@ -13,8 +13,8 @@ from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData
 from sqlalchemy.orm import mapper, scoped_session, sessionmaker
 
-def init_record(dbname):
-    db_path = 'records'
+def init_record(spider_name, dbname):
+    db_path = os.path.join('records', str(spider_name))
     tabal_name = 'records'
     if not os.path.exists(db_path):
         os.makedirs(db_path)

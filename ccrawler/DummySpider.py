@@ -25,6 +25,7 @@ class DummySpider:
     #start_urls = ['http://www.baidu.com', 'http://www.google.com', 'http://www.google.hk']
     #start_urls = ['http://money.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=sz000001&Page=1']
     #start_urls = ['http://www.tuaaa.com/eread/']
+    name = 'test'
     workers = 100
     timeout = 8
     #recover = False
