@@ -15,7 +15,6 @@ from python import unicode_to_str
 from list import HtmlSelectorList
 from common import extract_regex, body_as_utf8, logger
 
-from sqlalchemy.orm import mapper
 from records import init_record
 
 
