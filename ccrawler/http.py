@@ -13,13 +13,15 @@ from common import deprecated_setter, UnicodeDammit, encoding_exists, resolve_en
 from headers import Headers
 from eventlet.green import urllib2
 
+from lxml.html.clean import Cleaner
+cleaner = Cleaner(style=True, page_structure=False, links=False)
 
 def Request(spidername, url, req_reverse=False, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS):
     body, status, response, params = 'None', '200', None, {}
     request = urllib2.Request(url, req_data, req_headers)
     try:
         response = urllib2.urlopen(request)
-        body = response.read()
+        body = cleaner.clean_html(response.read())
         response.close()
         parse_url = urlparse(url)
         params = {}
