@@ -10,37 +10,108 @@ import re, codecs, hashlib
 import settings, eventlet
 from urlparse import urlparse
 from common import deprecated_setter, UnicodeDammit, encoding_exists, resolve_encoding
-from headers import Headers
+from headers import Headers, headers_raw_to_dict
 from eventlet.green import urllib2
 
 from lxml.html.clean import Cleaner
 cleaner = Cleaner(style=True, page_structure=False, links=False)
 
-def Request(spidername, url, req_reverse=False, req_data=None, req_headers=settings.DEFAULT_REQUEST_HEADERS):
-    body, status, response, params = 'None', '200', None, {}
-    request = urllib2.Request(url, req_data, req_headers)
-    try:
-        response = urllib2.urlopen(request)
-        body = cleaner.clean_html(response.read())
-        response.close()
-        parse_url = urlparse(url)
-        params = {}
-        for part in parse_url[4].split('&'):
-            if part.find('=') is not -1:
-                k, v = part.split('=')
-            else:
-                k, v = part, ''
-            params[k] = v
-    except urllib2.HTTPError, e:
-        status = e.code
-    except urllib2.URLError, e:
-        status = 'URLError: %s.' % e.args[0]
-    except eventlet.Timeout, e:
-        status = 'Time out.'
-    except:
-        status = 'URLError: Could not resolve.'
-    finally:
-        return Response(spidername, url, status, req_headers, body, request, req_reverse)(params)
+import pycurl
+from cStringIO import StringIO
+
+class Request:
+
+    def __init__(self):
+        self.httpheader = settings.DEFAULT_REQUEST_HEADERS_CURL
+        self.referer = ''
+        self.connnecttimeout = 60
+        self.timeout = 300
+        self.backheader = 0
+        self.cookesfile = "cookies"
+        self.proxyuse = False
+        self.proxyip = []
+        self.proxynodomain = ['localhost','127.0.0.1']
+
+        self.setting_name = 'default'
+        self.setting_reverse = False
+
+    def __del__(self):
+        pass
+
+    def fetch(self, url, post={}):
+        '''
+        @ url string
+        @ post dict: {'param':'value'}
+        '''
+
+        url = url.strip()
+
+        if post:
+            post = urllib.urlencode(post)
+        else:
+            post = None
+
+        self.rep = StringIO()
+        self.header = ""
+
+        curl = pycurl.Curl()
+        curl.setopt(pycurl.CONNECTTIMEOUT, self.connnecttimeout)
+        curl.setopt(pycurl.TIMEOUT, self.timeout)
+        curl.setopt(pycurl.HTTPHEADER, self.httpheader)
+        curl.setopt(pycurl.HEADER, self.backheader)
+        curl.setopt(pycurl.FOLLOWLOCATION, 1)
+        curl.setopt(pycurl.MAXREDIRS, 5)
+        curl.setopt(pycurl.AUTOREFERER, 1)
+        curl.setopt(pycurl.COOKIEJAR, self.cookesfile)
+        curl.setopt(pycurl.COOKIEFILE, self.cookesfile)
+        curl.setopt(pycurl.WRITEFUNCTION, self.rep.write)
+        curl.setopt(pycurl.HEADERFUNCTION, self.write_header)
+        curl.setopt(pycurl.URL, url)
+
+        if self.proxyuse:
+            proxyip = self.proxyip[random.randint(0, len(self.proxyip)-1)];
+            curl.setopt(pycurl.PROXY, proxyip)
+        if post:
+            curl.setopt(pycurl.POSTFIELDS, post)
+        if self.referer:
+            curl.setopt(pycurl.REFERER, self.referer)
+
+        body, status, headers, response, params = 'None', '200', '', None, {}
+
+        try:
+            curl.perform()
+            status = str(curl.getinfo(pycurl.RESPONSE_CODE))
+            body = cleaner.clean_html(self.get_rep())
+            headers = self.get_header()
+            headers = headers_raw_to_dict(headers)
+
+            parse_url = urlparse(url)
+            for part in parse_url[4].split('&'):
+                if part.find('=') is not -1:
+                    k, v = part.split('=')
+                else:
+                    k, v = part, ''
+                params[k] = v
+        except pycurl.error:
+            status = curl.errstr()
+        finally:
+            curl.close()
+            response = Response(self.setting_name, url, status, headers, body, None, self.setting_reverse)(params)
+            return response
+
+    def write_header(self, string):
+        self.header += string
+
+    def get_rep(self):
+        value = self.rep.getvalue()
+        self.rep.close()
+        self.rep = StringIO()
+        return value
+
+    def get_header(self):
+        h = self.header
+        self.header = ""
+        return h
 
 
 class Response:
@@ -57,9 +128,9 @@ class Response:
     _DEFAULT_ENCODING = settings.DEFAULT_RESPONSE_ENCODING
     _ENCODING_RE = re.compile(r'charset=([\w-]+)', re.I)
 
-    def __init__(self, spidername, url, status=200, headers=None, body='', request=None, reversemode=False):
+    def __init__(self, setting_name, url, status='200', headers=None, body='', request=None, reversemode=False):
         self.headers = Headers(headers or {})
-        self.name = spidername
+        self.name = setting_name
         self.status = status
         self._set_body(body)
         self._set_url(url)

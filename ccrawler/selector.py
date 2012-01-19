@@ -109,7 +109,11 @@ class HtmlSelector:
                     session.add(query)
                     session.commit()
 
-                response = Request(self.spidername, unicode_to_str(url), self.reversemode)
+                req = Request()
+                req.setting_name = self.spidername
+                req.setting_reverse = self.reversemode
+                response = req.fetch(unicode_to_str(url))
+
                 logger.info('Fetched: %s (%s)' % (url, response.status))
                 return self.__class__(response)
             except:

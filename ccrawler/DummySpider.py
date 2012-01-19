@@ -26,9 +26,9 @@ class DummySpider:
     #start_urls = ['http://money.finance.sina.com.cn/corp/view/vCB_AllNewsStock.php?symbol=sz000001&Page=1']
     #start_urls = ['http://www.tuaaa.com/eread/']
     # news
-    start_urls = ['http://ggzx.stock.hexun.com/more.jsp?t=0&k=002102']
+    #start_urls = ['http://ggzx.stock.hexun.com/more.jsp?t=0&k=002102', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002112', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002113', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002114', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002115', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002116', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002117', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002118', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002119', 'http://ggzx.stock.hexun.com/more.jsp?t=0&k=002120']
     # hangye
-    #start_urls = ['http://stockhtm.finance.qq.com/sstock/ggcx/002102.shtml']
+    start_urls = ['http://stockhtm.finance.qq.com/sstock/ggcx/002102.shtml']
     name = 'test'
     workers = 100
     timeout = 8
@@ -38,21 +38,20 @@ class DummySpider:
     def parse(self, response):
         hxs = HtmlSelector(response)
 
-        '''
         # hangye
         itemlist = hxs.select('//div[@id="box8"]/ul/li')
+        print len(itemlist)
         linkitem = itemlist.select('a/@href').Link()
-        print len(linkitem)
 
         for item in linkitem:
             title = item.select('//div[@id="C-Main-Article-QQ"]/div/h1/text()').extract()
             pubtime = item.select('//div[@id="C-Main-Article-QQ"]/div/div/div/span[@class="pubTime"]/text()').extract()
             content = item.select('//div[@id="Cnt-Main-Article-QQ"]').extract()
             print pubtime
+
+
         '''
-
         # news
-
         itemlist = hxs.select('//div[@class="temp01"]/ul[@id="c1"]/li')
         linkitem = itemlist.select('a/@href').Link()
         print len(linkitem)
@@ -62,6 +61,7 @@ class DummySpider:
             pubtime = item.select('//div[@id="artibodyTitle"]/div/div/span[@class="gray"][1]/text() | //span[@id="artibodyDesc"]/span[@class="gray"][1]/text() | //div[@class="detailnav"]/div/span[@class="gray"]/text() | //div[@id="artInfo"]/span/text()').extract()
             content = item.select('//div[@id="artibody"]').extract()
             print title
+        '''
 
         '''
         itemlist = hxs.select('//td[@class="td2"]')

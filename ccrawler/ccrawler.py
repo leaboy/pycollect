@@ -35,7 +35,6 @@ class CCrawler:
         self.start_urls = self.reverse and self.start_urls.reverse() or self.start_urls
 
         self.creq = queue.Queue()
-        self.cres = queue.Queue()
 
         self.pool = eventlet.GreenPool(self.workers)
         self.pool.spawn_n(self.dispatcher)
@@ -57,9 +56,12 @@ class CCrawler:
 
     def fetcher(self):
         url = self.creq.get()
-        response = Request(self.name, str(url), self.reverse)
-        self.cres.put(response)
-        self.pool.spawn_n(self.parse_coroutine)
+        req = Request()
+        req.setting_name = self.name
+        req.setting_reverse = self.reverse
+        req.timeout = self.timeout
+        response = req.fetch(url)
+        self.parse_coroutine(response)
         logger.info('Fetched: %s (%s)' % (url, response.status))
 
     def start(self):
@@ -71,9 +73,8 @@ class CCrawler:
         self.creq.resize(0)
         logger.info("stopping crawl...\n")
 
-    def parse_coroutine(self):
-        response = self.cres.get()
-        if response.status is not '200':
+    def parse_coroutine(self, response):
+        if response.status != '200':
             return
         res_hash = hashlib.md5(response.body).hexdigest().upper()
         query_record = self.session.query(self.records.hash).filter(self.records.hash==res_hash).first()
